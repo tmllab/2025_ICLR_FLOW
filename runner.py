@@ -1,5 +1,3 @@
-import asyncio
-from typing import Dict, Any
 from gptClient import GPTClient
 import logging
 from config import Config

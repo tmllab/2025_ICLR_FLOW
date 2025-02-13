@@ -2,8 +2,6 @@ import asyncio
 import json
 import logging
 from typing import Dict, Any
-
-from config import Config
 from runner import AsyncRunner
 from workflowManager import WorkflowManager
 

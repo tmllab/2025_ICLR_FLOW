@@ -1,9 +1,6 @@
-import asyncio
-from typing import Dict, Any
+
 from gptClient import GPTClient
-import logging
 from config import Config
-from workflow import Workflow
 
 class Summary:
     """Run a subtask using GPT."""

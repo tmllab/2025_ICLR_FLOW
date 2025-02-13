@@ -1,5 +1,4 @@
 import asyncio
-import os
 from openai import OpenAI
 from typing import Dict, Any, List
 from config import Config
