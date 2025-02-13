@@ -37,12 +37,14 @@ class Flow:
         active_tasks (Dict[str, asyncio.Task]): Maps task IDs to active asyncio tasks.
         completed_tasks (Dict[str, asyncio.Task]): Maps task IDs to completed tasks.
         redefining (bool): Whether the workflow is currently being redefined.
-        task_completion_counter (int): Counts how many tasks have completed.
+        task_completion_counter (int): Counts how many tasks have completed since last workflow refinement.
         can_schedule_tasks (asyncio.Event): Controls if scheduling is allowed.
         schedule_lock (asyncio.Lock): Prevents race conditions in scheduling.
+        refine_threhold (int): how many tasks have completed to tragger the workflow refinement.
+        enable_refine (bool): enable workflow refinment or not
     """
 
-    def __init__(self, overall_task: str, require_update=True, refine_threhold=3, n_candidate_graphs=10 ):
+    def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, n_candidate_graphs=10 ):
  
         self.overall_task = overall_task
         self.runner = AsyncRunner(overall_task)
@@ -59,7 +61,7 @@ class Flow:
         # Ensures only one scheduling operation at a time
         self.schedule_lock = asyncio.Lock()
 
-        if require_update==False:
+        if enable_refine==False:
             self.refine_threhold=float('inf')
         else:
             self.refine_threhold=refine_threhold
