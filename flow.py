@@ -51,7 +51,7 @@ class Flow:
         self.completed_tasks: Dict[str, Any] = {}
         self.redefining = False
         self.task_completion_counter = 0
-        if workflow:
+        if workflow is not None:
             self.workflow = workflow
         else:
             self.workflow = self.optimizer.init_workflow(n_candidate_graphs)
