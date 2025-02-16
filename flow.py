@@ -42,7 +42,7 @@ class Flow:
         enable_refine (bool): enable workflow refinment or not
     """
 
-    def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, n_candidate_graphs=10, customize: bool = False, customize_workflow = None):
+    def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, n_candidate_graphs=10, workflow = None):
  
         self.overall_task = overall_task
         self.runner = AsyncRunner(overall_task)
@@ -51,8 +51,8 @@ class Flow:
         self.completed_tasks: Dict[str, Any] = {}
         self.redefining = False
         self.task_completion_counter = 0
-        if customize:
-            self.workflow = customize_workflow
+        if workflow:
+            self.workflow = workflow
         else:
             self.workflow = self.optimizer.init_workflow(n_candidate_graphs)
         # Controls scheduling of tasks
