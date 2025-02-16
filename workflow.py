@@ -56,7 +56,7 @@ class Workflow:
         Returns a nicely formatted string representing the context for the given task.
         For each previous task that is completed, this includes:
           - Task id.
-          - Objective (from task.params.get('objective', ...)).
+          - Objective.
           - Result (from task.data).
         """
         if task_id not in self.tasks:
@@ -66,7 +66,6 @@ class Workflow:
         for prev_id in self.tasks[task_id].prev:
             if prev_id in self.tasks and self.tasks[prev_id].status == 'completed':
                 prev_task = self.tasks[prev_id]
-                # objective = prev_task.params.get('objective', 'No objective defined')
                 objective = prev_task.objective
                 result = prev_task.data if prev_task.data else 'No result available'
                 context_lines.append(
@@ -84,7 +83,7 @@ class Workflow:
         """
         Returns a nicely formatted string of the objectives for each downstream task.
         For each task listed in the 'next' list, the objective is fetched from
-        task.params.get('objective', 'No objective defined').
+        objective
         """
         if task_id not in self.tasks:
             return f"Task '{task_id}' not found in workflow."
@@ -93,7 +92,6 @@ class Workflow:
         for next_id in self.tasks[task_id].next:
             if next_id in self.tasks:
                 next_task = self.tasks[next_id]
-                # objective = next_task.params.get('objective', 'No objective defined')
                 objective = next_task.objective
                 objective_lines.append(
                     f"Task {next_id}:\n"
@@ -150,7 +148,6 @@ class Workflow:
             # In merge scenarios, do not compute dependencies yet.
             remaining_dependencies = 0
         
-        # new_task = Task(id, params, next, prev, status, data, remaining_dependencies, agent)
         new_task = Task(id, objective, agent_id, next, prev, status, data, remaining_dependencies, agent)
         self.tasks[id] = new_task
 
@@ -184,7 +181,6 @@ class Workflow:
         new_next = set(next)
         
         # Update task fields.
-        # task.params = params
         task.objective = objective
         task.agent_id = agent_id
         task.next = next
@@ -267,7 +263,6 @@ class Workflow:
                     new_status = "pending"
                     self.edit_task(
                         id=task_id,
-                        # params=new_task_data.get('params', {}),
                         objective=new_task_data.get('objective', ''),
                         agent_id=new_task_data.get('agent_id', -1),
                         next=new_task_data.get('next', []),
@@ -282,7 +277,6 @@ class Workflow:
                 # Add new task with compute_dependencies=False since some parents may not yet exist.
                 self.add_task(
                     id=task_id,
-                    # params=new_task_data.get('params', {}),
                     objective=new_task_data.get('objective', ''),
                     agent_id=new_task_data.get('agent_id', -1),
                     next=new_task_data.get('next', []),
@@ -320,11 +314,8 @@ class Workflow:
     def tasks_are_equal(self, task_obj: Task, new_task_data: Dict[str, Any]) -> bool:
         """
         Determine if a task matches its new definition.
-        Comparison is made on params, next, and prev lists.
+        Comparison is made on objective, next, and prev lists.
         """
-        # return (task_obj.params == new_task_data.get('params') and
-        #         task_obj.next == new_task_data.get('next') and
-        #         task_obj.prev == new_task_data.get('prev'))
         return (task_obj.objective == new_task_data.get('objective') and
                 task_obj.next == new_task_data.get('next') and
                 task_obj.prev == new_task_data.get('prev'))

@@ -138,7 +138,6 @@ class WorkflowManager:
         # Simplify workflow to only necessary attributes
         simplified_workflow = {
             task_id: {
-                # 'params': task_info.get('params', {}),
                 'objective': task_info.get('objective', {}),
                 'agent_id': task_info.get('agent_id', -1),
                 'next': task_info.get('next', []),
@@ -151,7 +150,7 @@ class WorkflowManager:
         simplified_workflow['final_goal'] = self.objective.strip()
 
         logger.info("Sending request to GPT for optimization...")
-        # print(simplified_workflow)
+        
         messages = [
             {"role": "system", "content": prompt.UPDATE_WORKFLOW_PROMPT},
             {"role": "user", "content": json.dumps(simplified_workflow, indent=4)}

@@ -77,12 +77,9 @@ class AsyncRunner:
         task_obj = workflow.tasks[task_id]
         # Get context from completed previous tasks as a nicely formatted string.
         context = workflow.get_context(task_id)
-        # params = task_obj.params
-        # task_objective = params.get('objective', 'No objective defined')
         task_objective = task_obj.objective
         # Get downstream tasks objectives as a nicely formatted string.
         next_objective = workflow.get_downsteam_objectives(task_id)
-        # agent_id = params.get('agent', 'Unknown agent')
         agent_id = task_obj.agent_id
         
         # Log a brief snippet of the context (first 100 characters) for clarity.
