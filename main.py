@@ -6,7 +6,6 @@ import time
 from flow import Flow
 import logging
 from summary import Summary
-import cus_workflow
 # -----------------------------------------------------------------------------
 # Configuration and Logging Setup
 # -----------------------------------------------------------------------------
@@ -38,16 +37,10 @@ def main():
     '''
     refine_threshold: int = 2
     candidate_graphs: int = 3
-    customize: bool = False
-    
-    if customize:
-        customize_workflow = cus_workflow.customize_workflow()
-    else:
-        customize = None
-    
+
     start_time = time.time()
 
-    manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = refine_threshold, n_candidate_graphs=candidate_graphs, customize=customize, customize_workflow=customize_workflow)
+    manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = refine_threshold, n_candidate_graphs=candidate_graphs, customize=False, customize_workflow=None)
     asyncio.run(manager.run_async())
 
     elapsed_time = time.time() - start_time
