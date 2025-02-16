@@ -14,7 +14,7 @@ class Task:
         self.prev = prev
         self.status = status
         self.data = data
-        self.remaining_dependencies = remaining_dependencies
+        self.remaining_dependencies = len(self.prev)
         self.agent = agent
 
 
@@ -31,11 +31,7 @@ class Task:
             'remaining_dependencies': self.remaining_dependencies,
             'agent': self.agent
         }
-    
-    def calculate_dependencies(self):
-        """Calculate the dependencies of task using amount of previous task(s)."""
-        self.remaining_dependencies = len(self.prev)
-    
+
 
 
 class Workflow:
