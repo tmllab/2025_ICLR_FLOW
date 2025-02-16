@@ -56,7 +56,6 @@ def process_context(context: str):
             'prev': [f'task{elem}' for elem in dependencies[i]],
             'status': 'pending',
             'data': '',
-            'remaining_dependencies': len(dependencies[i]),
             'agent': agents[assigned_agent]['role']  # Use the assigned agent's role
         }
         workflow[f'task{i}'] = temp_dic
