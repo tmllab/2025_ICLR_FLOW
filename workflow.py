@@ -6,7 +6,7 @@ import json
 class Task:
     """Data structure representing a workflow task."""
     def __init__(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
-                 status: str = 'pending', data: str = '', remaining_dependencies: int = 0, agent: str = ''):
+                 status: str = 'pending', data: str = '', agent: str = ''):
         self.id = id
         self.objective = objective
         self.agent_id = agent_id
