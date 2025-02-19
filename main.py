@@ -34,12 +34,12 @@ def main():
                             1). For each section, I would like to see example HTML content. Additionally, a sample CSS stylesheet should be provided to style the website. The content must be professional, clear, and appropriate for an international academic conference.
                             2). The website should include all the provided details, including a comprehensive conference schedule and a section dedicated to the conference venue, featuring a map.
                         '''
-    refine_threshold: int = 2
-    candidate_graphs: int = 3
+
+
 
     start_time = time.time()
 
-    manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = refine_threshold, n_candidate_graphs=candidate_graphs,workflow=None)
+    manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = 3, n_candidate_graphs=10,workflow=None)
     asyncio.run(manager.run_async())
 
     elapsed_time = time.time() - start_time

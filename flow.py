@@ -172,6 +172,7 @@ class Flow:
 
 
         # Trigger workflow refinement when threshold is reached
+        print(self.task_completion_counter , self.refine_threhold )
         if self.task_completion_counter >= self.refine_threhold and not self.redefining:
             logger.info(f"Task {task_id} triggers workflow refinement.")
             self.task_completion_counter = 0

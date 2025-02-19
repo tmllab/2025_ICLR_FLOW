@@ -67,7 +67,7 @@ class Workflow:
             if prev_id in self.tasks and self.tasks[prev_id].status == 'completed':
                 prev_task = self.tasks[prev_id]
                 objective = prev_task.objective
-                result = prev_task.data if prev_task.data else 'No result available'
+                result = prev_task.data if prev_task.data else 'None'
                 context_lines.append(
                     f"Task {prev_id}:\n"
                     f"  Objective: {objective}\n"
