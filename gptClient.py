@@ -1,8 +1,6 @@
-import asyncio
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 from typing import Dict, Any, List
 from config import Config
-
 
 # -----------------------------------------------------------------------------
 # GPT Client
@@ -14,14 +12,16 @@ class GPTClient:
         self.model = model
         self.temperature = temperature
         self.client = OpenAI(api_key=self.api_key)
-
+        self.a_client = AsyncOpenAI(api_key=self.api_key)
+        
     async def a_chat_completion(self, messages: List[Dict[str, Any]], temperature: float = None) -> str:
-        loop = asyncio.get_event_loop()
-        response = await loop.run_in_executor(
-            None,
-            lambda: self.chat_completion(messages, temperature)
+        temp = temperature if temperature is not None else self.temperature
+        response = await self.a_client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=temp
         )
-        return response
+        return response.choices[0].message.content
     
   
     def chat_completion(self, messages: List[Dict[str, Any]], temperature: float = None) -> str:
@@ -33,3 +33,8 @@ class GPTClient:
             temperature=temp
         )
         return response.choices[0].message.content
+    
+
+    
+
+
