@@ -1,190 +1,78 @@
-```html
-<!DOCTYPE html>
-<html lang="en">
+```python
+import tkinter as tk
+import random
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>ICLR 2025 - Home</title>
-</head>
+def get_ai_choice():
+    """A simple AI that randomly selects Rock, Paper, or Scissors."""
+    return random.choice(['Rock', 'Paper', 'Scissors'])
 
-<body>
-    <header>
-        <h1>Welcome to ICLR 2025</h1>
-        <nav>
-            <ul>
-                <li><a href="#conferenceSchedule">Conference Schedule</a></li>
-                <li><a href="#venueInformation">Venue Information</a></li>
-                <li><a href="#registration">Registration</a></li>
-                <li><a href="#contactDetails">Contact Us</a></li>
-            </ul>
-        </nav>
-    </header>
+def determine_winner(player_choice, ai_choice):
+    """Core game logic to determine the winner based on player and AI choices."""
+    if player_choice == ai_choice:
+        return 'Draw'
+    elif (player_choice == 'Rock' and ai_choice == 'Scissors') or \
+         (player_choice == 'Paper' and ai_choice == 'Rock') or \
+         (player_choice == 'Scissors' and ai_choice == 'Paper'):
+        return 'You Win'
+    else:
+        return 'You Lose'
 
-    <section>
-        <h2>Overview</h2>
-        <p>The International Conference on Learning Representations (ICLR) is a premier venue for the presentation and discussion of research on all aspects of learning representations in the fields of machine learning and artificial intelligence.</p>
-    </section>
+class RockPaperScissors:
+    def __init__(self, master):
+        self.master = master
+        master.title('Rock-Paper-Scissors')
 
-    <section>
-        <h2>Dates</h2>
-        <p>April 27, 2025 - May 1, 2025</p>
-    </section>
+        self.player_choice = None
+        self.ai_choice = None
+        self.result = None
 
-    <section>
-        <h2>Location</h2>
-        <p>San Francisco, California, United States</p>
-    </section>
+        self.label = tk.Label(master, text='Choose Rock, Paper, or Scissors:', font=('Arial', 14))
+        self.label.pack()
 
-    <section>
-        <h2>Welcome Message</h2>
-        <p>We invite researchers, practitioners, and students to join us for an engaging week of presentations, workshops, and networking opportunities. Your participation will contribute to the advancement of knowledge in the field.</p>
-    </section>
+        self.rock_button = tk.Button(master, text='Rock', command=lambda: self.play('Rock'), font=('Arial', 12))
+        self.rock_button.pack(pady=5)
 
-    <footer>
-        <p>© 2025 International Association for Learning Representations. All rights reserved.</p>
-    </footer>
-</body>
+        self.paper_button = tk.Button(master, text='Paper', command=lambda: self.play('Paper'), font=('Arial', 12))
+        self.paper_button.pack(pady=5)
 
-</html>
+        self.scissors_button = tk.Button(master, text='Scissors', command=lambda: self.play('Scissors'), font=('Arial', 12))
+        self.scissors_button.pack(pady=5)
+
+        self.result_label = tk.Label(master, text='', font=('Arial', 14))
+        self.result_label.pack(pady=20)
+
+    def play(self, player_choice):
+        self.player_choice = player_choice
+        self.ai_choice = get_ai_choice()
+        self.result = determine_winner(self.player_choice, self.ai_choice)
+        self.display_result()
+
+    def display_result(self):
+        self.result_label.config(text=f'You chose: {self.player_choice}\nAI chose: {self.ai_choice}\nResult: {self.result}')
+
+if __name__ == '__main__':
+    root = tk.Tk()
+    game = RockPaperScissors(root)
+    root.mainloop()
 ```
 
-```html
-<section id="conference-schedule">
-    <h2>Conference Schedule</h2>
-    <p>The conference schedule includes a variety of sessions featuring keynote speakers, panels, and workshops. Detailed timings and speaker information will be provided closer to the event date.</p>
+### Testing Cases
+Here are the testing cases to ensure the functionality of the game:
 
-    <div>
-        <h3>April 28, 2025</h3>
-        <ul>
-            <li>
-                <strong>09:00 - 10:00:</strong> Keynote: Advances in Learning Representations - <em>Dr. Jane Doe</em>
-                <p>This keynote will explore the latest advancements in the field of learning representations and their implications for future research.</p>
-            </li>
-            <li>
-                <strong>10:30 - 12:00:</strong> Workshop: Representation Learning Techniques - <em>Dr. John Smith</em>
-                <p>An interactive workshop focusing on various techniques for learning representations in machine learning models.</p>
-            </li>
-        </ul>
-    </div>
+1. **Input:** Rock
+   - **Expected Output:** Displays player's choice as Rock, AI's choice, and the result.
 
-    <div>
-        <h3>April 29, 2025</h3>
-        <ul>
-            <li>
-                <strong>09:00 - 10:30:</strong> Panel Discussion: The Future of Machine Learning - <em>Dr. Alice Brown, Dr. Bob White, Dr. Carol Green</em>
-                <p>A panel discussion featuring leading experts discussing the future directions and challenges in the field of machine learning.</p>
-            </li>
-        </ul>
-    </div>
-</section>
-```
+2. **Input:** Paper
+   - **Expected Output:** Displays player's choice as Paper, AI's choice, and the result.
 
-```html
-<section id="venue-information" class="venue-section">
-    <h2>Venue Information</h2>
-    <p>The conference will be held at the San Francisco Convention Center, offering state-of-the-art facilities and ample space for participants to engage in discussions and networking.</p>
-    
-    <h3>Amenities</h3>
-    <ul>
-        <li>Free Wi-Fi throughout the venue</li>
-        <li>Catering services provided for all attendees</li>
-        <li>Accessibility options available</li>
-    </ul>
+3. **Input:** Scissors
+   - **Expected Output:** Displays player's choice as Scissors, AI's choice, and the result.
 
-    <h3>Location Map</h3>
-    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.835434507444!2d-122.41941568468126!3d37.77492927975954!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8085809cf0a840c3%3A0x20e5b2c3b2b3f7a4!2sSan%20Francisco%20Convention%20Center!5e0!3m2!1sen!2sus!4v1616580923471!5m2!1sen!2sus" width="100%" height="400" frameborder="0" allowfullscreen="" aria-hidden="false"></iframe>
+### Deployment Requirements
+To prepare the game for deployment, ensure the following:
 
-    <p>For more information about the venue, please visit the official website.</p>
-</section>
-```
-
-```css
-body {
-    font-family: 'Arial', sans-serif;
-    line-height: 1.6;
-    margin: 0;
-    padding: 0;
-    color: #333;
-}
-
-header {
-    background-color: #004b87;
-    color: #ffffff;
-    padding: 20px 0;
-    text-align: center;
-}
-
-h1 {
-    font-size: 2.5em;
-    margin: 0;
-}
-
-h2 {
-    font-size: 2em;
-    margin: 20px 0;
-}
-
-h3 {
-    font-size: 1.5em;
-    margin: 15px 0;
-}
-
-p {
-    margin: 15px 0;
-}
-
-nav {
-    background-color: #f4f4f4;
-    padding: 10px;
-    text-align: center;
-}
-
-nav a {
-    text-decoration: none;
-    color: #004b87;
-    margin: 0 15px;
-}
-
-nav a:hover {
-    text-decoration: underline;
-}
-
-section {
-    padding: 20px;
-    margin: 20px 0;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #ffffff;
-}
-
-footer {
-    background-color: #004b87;
-    color: #ffffff;
-    text-align: center;
-    padding: 15px 0;
-    position: relative;
-    bottom: 0;
-    width: 100%;
-}
-
-button {
-    background-color: #004b87;
-    color: #ffffff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #003366;
-}
-
-.map {
-    width: 100%;
-    height: 400px;
-    border: none;
-}
+- **Requirements:**
+  - Python 3.x installed
+  - tkinter library available
+  - Executable script ready for distribution
 ```
