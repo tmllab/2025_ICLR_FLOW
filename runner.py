@@ -2,7 +2,8 @@ from gptClient import GPTClient
 import logging
 from config import Config
 from workflow import Workflow
-
+from validator import Validator
+ 
 # -----------------------------------------------------------------------------
 # Configuration and Logging Setup
 # -----------------------------------------------------------------------------
@@ -18,13 +19,14 @@ logger = logging.getLogger(__name__)
 # -----------------------------------------------------------------------------
 class AsyncRunner:
     """Executes an individual task asynchronously via GPT."""
-    def __init__(self, overall_task: str):
+    def __init__(self, overall_task: str, max_itt):
         self.overall_task = overall_task
         self.gpt_client = GPTClient(
             api_key=Config.OPENAI_API_KEY,
             model=Config.GPT_MODEL,
             temperature=Config.TEMPERATURE
         )
+        self.validator = Validator(max_itt)
 
     async def _execute(self, subtask: str, agent_id: str, context: str, next_objective: str) -> str:
         logger.info(f"Task '{subtask}' started by agent '{agent_id}'.")
@@ -66,6 +68,8 @@ class AsyncRunner:
         ]
 
         result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+
+        reason, result = await self.validator.call_validate(subtask, result)
         return result
 
     async def execute(self, workflow: Workflow, task_id: str) -> str:

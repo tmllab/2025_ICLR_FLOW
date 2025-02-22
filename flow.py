@@ -40,12 +40,13 @@ class Flow:
         schedule_lock (asyncio.Lock): Prevents race conditions in scheduling.
         refine_threhold (int): how many tasks have completed to tragger the workflow refinement.
         enable_refine (bool): enable workflow refinment or not
+        max_itt(int): how many times the validation work will repeat.
     """
 
-    def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, n_candidate_graphs=10, workflow = None):
+    def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, n_candidate_graphs=10, workflow = None, max_itt: int = 3):
  
         self.overall_task = overall_task
-        self.runner = AsyncRunner(overall_task)
+        self.runner = AsyncRunner(overall_task, max_itt)
         self.optimizer = WorkflowManager(overall_task)
         self.active_tasks: Dict[str, asyncio.Task] = {}
         self.completed_tasks: Dict[str, Any] = {}
