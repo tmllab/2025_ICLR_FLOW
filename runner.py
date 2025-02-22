@@ -3,6 +3,7 @@ import logging
 from config import Config
 from workflow import Workflow
 from validator import Validator
+import prompt
  
 # -----------------------------------------------------------------------------
 # Configuration and Logging Setup
@@ -26,27 +27,17 @@ class AsyncRunner:
             model=Config.GPT_MODEL,
             temperature=Config.TEMPERATURE
         )
-        self.validator = Validator(max_itt)
+        self.max_itt = max_itt
+        self.validator = Validator()
 
     async def _execute(self, subtask: str, agent_id: str, context: str, next_objective: str) -> str:
         logger.info(f"Task '{subtask}' started by agent '{agent_id}'.")
         
         # System instructions for GPT
-        system_content = (
-            "You are a highly capable task solver. Your job is to produce a complete solution for the given subtask. "
-            "Your response must be strictly valid JSON without any additional commentary or explanations. "
-            "Follow these instructions exactly:\n"
-            "1. Ensure your output meets all requirements of the subtask.\n"
-            "2. Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.\n"
-            "3. Remember: Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.\n"
-            "4. Do not repeat verbatim any content from previous tasks.\n"
-            "5. Use formal language without contractions (e.g., use 'do not' instead of 'don't').\n"
-            "6. Avoid placeholders or incomplete text.\n\n"
-            "IMPORTANT: Your final output must be strictly valid JSON."
-        )
+        system_content = prompt.RUNNER_PROMPT
 
-        print(f'object: {subtask}')
-        print(f'next: {next_objective}')
+        # print(f'object: {subtask}')
+        # print(f'next: {next_objective}')
         
         # User prompt with context and objectives
         user_content = (
@@ -67,9 +58,24 @@ class AsyncRunner:
             {'role': 'user', 'content': user_content}
         ]
 
-        result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
-
-        reason, result = await self.validator.call_validate(subtask, result)
+        i = 0
+        while i < self.max_itt:
+            if i != 0:
+                feedback = await self.validator.validate(subtask, result)
+                if not feedback:
+                    break
+                user_content = f'''
+                    Here is the subtask: {subtask}
+                    Here is the result: {result}
+                    Here is the validation feedback: {feedback}
+                '''
+                messages = [
+                    {'role': 'system', 'content': prompt.RE_EXECUTE_PROMPT},
+                    {'role': 'user', 'content': user_content}
+                ]
+            result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+            i += 1
+        
         return result
 
     async def execute(self, workflow: Workflow, task_id: str) -> str:

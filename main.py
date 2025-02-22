@@ -29,11 +29,11 @@ def main():
     # Ensure UTF-8 encoding for stdout (optional, depending on environment)
     sys.stdout.reconfigure(encoding='utf-8')
 
-    overall_task: str = '''I am designing a website for the International Conference on Learning Representations (ICLR2025), which will take place from April 27, 2025, to May 1, 2025, in San Francisco, California, United States. The conference is organized by the International Association for Learning Representations.
-                            Note that:
-                            1). For each section, I would like to see example HTML content. Additionally, a sample CSS stylesheet should be provided to style the website. The content must be professional, clear, and appropriate for an international academic conference.
-                            2). The website should include all the provided details, including a comprehensive conference schedule and a section dedicated to the conference venue, featuring a map.
-                        '''
+    overall_task: str = '''Develop a Rock-Paper-Scissors game with a graphical user interface (GUI) in Python. 
+        The game should allow a player to compete against a naive AI that randomly selects Rock, Paper, or Scissors. 
+        The UI should display the player's choice, the AI's choice, and the game result (win, lose, or draw). 
+        Provide an interactive and user-friendly experience.
+        '''
 
 
 

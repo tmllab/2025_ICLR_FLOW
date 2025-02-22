@@ -1,31 +1,31 @@
 from gptClient import GPTClient
-import logging
 from config import Config
+import prompt
 
 class Validator:
-    def __init__(self, max_itt):
+    def __init__(self):
         self.gpt_client = GPTClient(
             api_key=Config.OPENAI_API_KEY,
             model=Config.GPT_MODEL,
             temperature=Config.TEMPERATURE
-        )
-        self.max_itt = max_itt
+        )     
 
-    def call_validate(self, task_obj, result) -> list[str, str]:
+    async def validate(self, task_obj, result):
 
-        # loop for validation self.max_itt times
-        i = 0
-        while i < self.max_itt:
-            validate_result, reason = self.validate(task_obj, result)
-            if not reason:
-                break
-            i += 1
+        system_content = prompt.VALIDATION_PROMPT
+        user_content = f'''
+            Here is the subtask: {task_obj}
+            Here is the result: {result}
+        '''
 
-        # return reason and validation result.
-        if i == self.max_itt:
-            return reason, validate_result
+        messages = [
+            {'role': 'system', 'content': system_content},
+            {'role': 'user', 'content': user_content}
+        ]
+
+        feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+        
+        if result == "NONE":
+            return None
         else:
-            return None, validate_result
-
-    def validate(task_obj, result):
-        return
+            return feedback
