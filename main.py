@@ -6,6 +6,7 @@ import time
 from flow import Flow
 import logging
 from summary import Summary
+from config import global_context
 # -----------------------------------------------------------------------------
 # Configuration and Logging Setup
 # -----------------------------------------------------------------------------
@@ -39,7 +40,11 @@ def main():
 
     start_time = time.time()
 
+<<<<<<< Updated upstream
     manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = 3, n_candidate_graphs=10,workflow=None)
+=======
+    manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = 3, n_candidate_graphs=3,workflow=None,max_itt=3)
+>>>>>>> Stashed changes
     asyncio.run(manager.run_async())
 
     elapsed_time = time.time() - start_time

@@ -2,35 +2,7 @@ from typing import Dict, Any, List
 import networkx as nx
 from collections import deque, defaultdict
 import json
-
-class Task:
-    """Data structure representing a workflow task."""
-    def __init__(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
-                 status: str = 'pending', data: str = '', agent: str = ''):
-        self.id = id
-        self.objective = objective
-        self.agent_id = agent_id
-        self.next = next
-        self.prev = prev
-        self.status = status
-        self.data = data
-        self.remaining_dependencies = len(self.prev)
-        self.agent = agent
-
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Converts the Task object to a dictionary for JSON serialization."""
-        return {
-            'id': self.id,
-            'objective': self.objective,
-            'agent_id': self.agent_id,
-            'next': self.next,
-            'prev': self.prev,
-            'status': self.status,
-            'data': self.data,
-            'remaining_dependencies': self.remaining_dependencies,
-            'agent': self.agent
-        }
+from task import Task
 
 
 

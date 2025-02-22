@@ -1,8 +1,14 @@
 from gptClient import GPTClient
 import logging
 from config import Config
+<<<<<<< Updated upstream
 from workflow import Workflow
 
+=======
+from validator import Validator
+import prompt
+ 
+>>>>>>> Stashed changes
 # -----------------------------------------------------------------------------
 # Configuration and Logging Setup
 # -----------------------------------------------------------------------------
@@ -68,12 +74,12 @@ class AsyncRunner:
         result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
         return result
 
-    async def execute(self, workflow: Workflow, task_id: str) -> str:
+    async def execute(self) -> str:
         """Wraps task execution logic, incorporating context and downstream objectives."""
-        if task_id not in workflow.tasks:
-            logger.error(f"Task '{task_id}' not found in workflow.")
-            return f"Error: Task '{task_id}' not found."
-        
+        # if task_id not in workflow.tasks:
+        #     logger.error(f"Task '{task_id}' not found in workflow.")
+        #     return f"Error: Task '{task_id}' not found."
+
         task_obj = workflow.tasks[task_id]
         # Get context from completed previous tasks as a nicely formatted string.
         context = workflow.get_context(task_id)

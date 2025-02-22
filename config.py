@@ -9,3 +9,6 @@ class Config:
 
     GPT_MODEL: str = "gpt-4o-mini"
     TEMPERATURE: float = 0.7
+
+
+from globalcontext import global_context

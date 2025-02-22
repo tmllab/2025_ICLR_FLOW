@@ -2,9 +2,10 @@ import asyncio
 import json
 import logging
 from typing import Dict, Any
-from runner import AsyncRunner
+# from runner import AsyncRunner
 from workflowManager import WorkflowManager
-
+from config import global_context
+from task import Task
 # -----------------------------------------------------------------------------
 # Configuration and Logging Setup
 # -----------------------------------------------------------------------------
@@ -44,8 +45,13 @@ class Flow:
 
     def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, n_candidate_graphs=10, workflow = None):
  
+        global_context.set("overall_task",overall_task )
         self.overall_task = overall_task
+<<<<<<< Updated upstream
         self.runner = AsyncRunner(overall_task)
+=======
+        # self.runner = AsyncRunner(overall_task, max_itt)
+>>>>>>> Stashed changes
         self.optimizer = WorkflowManager(overall_task)
         self.active_tasks: Dict[str, asyncio.Task] = {}
         self.completed_tasks: Dict[str, Any] = {}
@@ -75,23 +81,24 @@ class Flow:
             return
 
         for task in self.workflow.get_pending_tasks():
-            await self.schedule_task(task.id)
+            await self.schedule_task(task)
 
-    async def schedule_task(self, task_id: str):
+    async def schedule_task(self, task: Task):
         """
         Schedule a single task for execution if it's not already active.
         """
+        task_id = task.id
         async with self.schedule_lock:
             if not self.can_schedule_tasks.is_set():
                 return
             if task_id in self.active_tasks:
                 return
 
-            task_coroutine = self.run_task(task_id)
-            task = asyncio.create_task(task_coroutine)
-            self.active_tasks[task_id] = task
+            task_coroutine = self.run_task(task)
+            asyncio_task = asyncio.create_task(task_coroutine)
+            self.active_tasks[task_id] = asyncio_task
             # Start monitoring this task
-            asyncio.create_task(self.monitor_task(task_id, task))
+            asyncio.create_task(self.monitor_task(task_id, asyncio_task))
 
     async def monitor_task(self, task_id: str, task: asyncio.Task):
         """
@@ -106,7 +113,7 @@ class Flow:
         else:
             await self.task_done_callback(task_id)
 
-    async def run_task(self, task_id: str):
+    async def run_task(self, task: Task):
         """
         Core logic to run an individual task in the workflow.
 
@@ -115,21 +122,21 @@ class Flow:
         3. Execute the task using AsyncRunner.
         4. Save and log the result.
         """
-        task_obj = self.workflow.tasks[task_id]
 
-        if task_obj.status != 'pending':
-            logger.info(f"Task {task_id} not pending; skipping.")
+        if task.status != 'pending':
+            logger.info(f"Task {task.id} not pending; skipping.")
             return
 
         try:
             # Build context from successfully completed (status == 'completed') dependencies
 
-
+            task_id = task.id
             # Execute task with the runner
-            result = await self.runner.execute(self.workflow, task_id)
-            task_obj.data = result
-            task_obj.status = 'completed'
-            self.completed_tasks[task_id] = task_obj
+            result = await task.execute()
+            # result = await self.runner.execute(self.workflow, task_id)
+            task.data = result
+            task.status = 'completed'
+            self.completed_tasks[task_id] = task
 
             logger.info(f"Task {task_id} completed with result: {result}")
 
