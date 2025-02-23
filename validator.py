@@ -26,12 +26,12 @@ class Validator:
 
         feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
         
-        if result == "NONE":
+        if feedback == "NONE":
             return None
         else:
             return feedback
     
-    async def is_python_code(self, result):
+    async def is_python_code(self, result) -> bool:
         print('------CHECK IF PYTHON ONE TIME------')
         system_content = prompt.IS_PYTHON_PROMPT
         user_content = f'''
@@ -45,10 +45,10 @@ class Validator:
 
         feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
         
-        if result == "No":
-            return None
+        if feedback == "N":
+            return False
         else:
-            return feedback
+            return True
     
     async def execute_python_code(self, task_obj, result):
         print('------CHECK PYTHON RESULT ONE TIME------')
@@ -65,7 +65,7 @@ class Validator:
 
         feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
         
-        if result == "NONE":
+        if feedback == "NONE":
             return None
         else:
             return feedback

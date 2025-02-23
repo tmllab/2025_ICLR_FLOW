@@ -362,30 +362,30 @@ Follow these steps strictly:
   ```
 
 # Output Rules
-◆ Respond ONLY with "Yes" if executable Python code is found
-◆ Respond ONLY with "No" if no executable Python code is present
+◆ Respond ONLY with "Y" if executable Python code is found
+◆ Respond ONLY with "N" if no executable Python code is present
 
 # Example Responses
 [Input 1]:
 def calculate(x, y):
     return x + y
-Response: "Yes"
+Response: "Y"
 
 [Input 2]:
 This is a description of a function that adds two numbers
-Response: "No"
+Response: "N"
 
 [Input 3]:
 x = 5
 y = 10
 print(x + y)
-Response: "Yes"
+Response: "Y"
 
 [Input 4]:
 function add(x, y) {
     return x + y;
 }
-Response: "No"
+Response: "N"
 
 # Important Notes
 - Focus only on Python executability
