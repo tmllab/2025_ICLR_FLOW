@@ -29,6 +29,7 @@ class AsyncRunner:
         )
         self.max_itt = max_itt
         self.validator = Validator()
+        self.validator2 = Validator()
 
     async def _execute(self, subtask: str, agent_id: str, context: str, next_objective: str) -> str:
         logger.info(f"Task '{subtask}' started by agent '{agent_id}'.")
@@ -60,10 +61,32 @@ class AsyncRunner:
 
         i = 0
         while i < self.max_itt:
+            print('******_execute one time******')
             if i != 0:
-                feedback = await self.validator.validate(subtask, result)
-                if not feedback:
+                # feedback = await self.validator.validate(subtask, result)
+                # if not feedback:
+                #     break
+                # user_content = f'''
+                #     Here is the subtask: {subtask}
+                #     Here is the result: {result}
+                #     Here is the validation feedback: {feedback}
+                # '''
+                # messages = [
+                #     {'role': 'system', 'content': prompt.RE_EXECUTE_PROMPT},
+                #     {'role': 'user', 'content': user_content}
+                # ]
+
+                judgement = await self.validator.is_python_code(result)
+                if not judgement:
+                    print('******The result does not contain python code.******')
                     break
+
+                print('******The result contains python code.******')
+                feedback = await self.validator.execute_python_code(subtask, result)
+                if not feedback:
+                    print('******Perfect python code, subtask satisfied******')
+                    break
+                print('******Not Perfect code, need improve******')
                 user_content = f'''
                     Here is the subtask: {subtask}
                     Here is the result: {result}

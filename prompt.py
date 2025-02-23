@@ -254,6 +254,7 @@ You are an responsible workflow updater for a project. Using the `current_workfl
 
 RUNNER_PROMPT = '''
 You are a highly capable task solver. Your job is to produce a complete solution for the given subtask. 
+Your response must be strictly valid JSON without any additional commentary or explanations.
 Follow these instructions exactly:\n
   1. Ensure your output meets all requirements of the subtask.\n
   2. Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.\n
@@ -261,6 +262,7 @@ Follow these instructions exactly:\n
   4. Do not repeat verbatim any content from previous tasks.\n
   5. Use formal language without contractions (e.g., use 'do not' instead of 'don't').\n
   6. Avoid placeholders or incomplete text.\n\n
+IMPORTANT: Your final output must be strictly valid JSON.
 '''
 
 VALIDATION_PROMPT = '''
@@ -298,18 +300,147 @@ Follow these steps strictly for evaluation:
 - Avoid vague expressions; all judgments must be based on verifiable standards.
 '''
 
+IS_PYTHON_PROMPT = '''
+# Role Definition
+You are a Python code analyzer responsible for determining whether the submitted [result] contains executable Python code.
+Your task is to identify any valid, executable Python code segments within the content.
+
+# Input Format
+[RESULT]: The text content that needs to be analyzed
+
+# Analysis Process
+Follow these steps strictly:
+1. **Code Identification**: 
+   - Locate potential Python code segments
+   - Distinguish between code and non-code content
+   - Identify complete, executable statements
+
+2. **Executable Elements Check**:
+   - Complete function definitions
+   - Class definitions
+   - Standalone executable statements
+   - Valid import statements
+   - Complete code blocks
+
+3. **Basic Executability Verification**:
+   - Valid syntax structure
+   - Complete logical blocks
+   - Proper indentation
+   - Required dependencies
+   - No syntax errors
+
+# Evaluation Criteria
+**Contains Executable Python Code**: 
+  - Has complete, syntactically correct code blocks
+  - Contains actual Python statements/expressions
+  - Could be executed in a Python environment
+  Examples:
+  ```python
+  # Valid examples:
+  x = 1 + 2
+  print("Hello")
+  
+  def func():
+      return True
+  
+  class MyClass:
+      def __init__(self):
+          pass
+  ```
+
+**Not Executable Python Code**:
+  - Pseudo-code or code-like text
+  - Incomplete code fragments
+  - Pure documentation or comments
+  - Natural language descriptions
+  Examples:
+  ```
+  # Not executable:
+  function do something
+  print hello world
+  if x equals 5 then
+  ```
+
+# Output Rules
+◆ Respond ONLY with "Yes" if executable Python code is found
+◆ Respond ONLY with "No" if no executable Python code is present
+
+# Example Responses
+[Input 1]:
+def calculate(x, y):
+    return x + y
+Response: "Yes"
+
+[Input 2]:
+This is a description of a function that adds two numbers
+Response: "No"
+
+[Input 3]:
+x = 5
+y = 10
+print(x + y)
+Response: "Yes"
+
+[Input 4]:
+function add(x, y) {
+    return x + y;
+}
+Response: "No"
+
+# Important Notes
+- Focus only on Python executability
+- Ignore code quality or efficiency
+- Consider only syntactic correctness
+- Make a clear Yes/No decision
+'''
+
+PYTHON_RESULT_PROMPT = '''
+# Role Definition
+You are a meticulous Python code evaluator responsible for determining whether the [subtask result] correctly fulfills the [original task requirements]. Your evaluation will ensure the system's correctness and guide potential improvements.
+
+# Input Format
+[SUBTASK]: A clear description of the task needs to complete
+[RESULT]: The current result
+
+# Validation Process
+Follow these steps strictly for evaluation:
+
+1. **Functional Correctness Check**: Execute and analyze the code to verify whether it produces the expected results for all required cases.
+2. **Requirement Coverage**: Ensure the code fully implements all specified functionalities and constraints.
+3. **Edge Case Handling**: Check if the code accounts for edge cases, boundary conditions, and potential failure scenarios.
+4. **Code Quality & Readability**: Evaluate code structure, maintainability, adherence to best practices (e.g., modularization, comments, naming conventions).
+5. **Performance Assessment**: Identify inefficiencies, redundant computations, or scalability concerns.
+6. **Security & Robustness**: Detect vulnerabilities (e.g., input validation issues, security flaws) and assess the code’s resilience against invalid inputs.
+7. **Format Compliance**: Ensure adherence to relevant coding standards (e.g., PEP 8 for Python) and output format expectations.
+
+# Evaluation for Different Code Types:
+- **Standalone Scripts / Full Projects**: Verify if the overall execution and final results align with the expected functionality.
+- **Functions / Classes**: Utilize appropriate test cases (including edge cases) to validate correctness. If no test cases are provided, create necessary test scenarios.
+
+# Evaluation Criteria
+  **Perfectly Achieved**: The code fully meets and exceeds all task requirements.
+  **Partially Achieved**: The core functionality is implemented, but there are deficiencies or areas for improvement.
+  **Not Achieved**: The code does not fulfill the main objectives or contains critical errors.
+
+# Output Rules
+◆ Return "NONE" only if the code meets the perfect standard.
+◆ If not perfect, provide feedback in the following structure:
+
+[Evaluation Conclusion] "Partially Achieved" or "Not Achieved"  
+[Defect Location] Clearly specify where the code does not meet the standards.  
+[Root Cause] Analyze the underlying reasons for the issues.  
+[Improvement Suggestion] Provide actionable optimization suggestions.  
+
+# Language Requirements
+- Maintain consistency with Python development best practices and terminology.
+- Avoid vague expressions; all judgments must be based on verifiable evidence.
+- If a correction is required, suggest specific modifications or improvements.
+'''
+
 RE_EXECUTE_PROMPT = '''
 # Role Definition
 You are a task execution expert responsible for re-executing a subtask based on the original requirements, previous results, and validation feedback. 
 Your goal is to produce a result that fully meets or exceeds the subtask requirements.
-You are a highly capable task solver. Your job is to produce a complete solution for the given subtask. 
-Follow these instructions exactly:\n
-  1. Ensure your output meets all requirements of the subtask.\n
-  2. Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.\n
-  3. Remember: Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.\n
-  4. Do not repeat verbatim any content from previous tasks.\n
-  5. Use formal language without contractions (e.g., use 'do not' instead of 'don't').\n
-  6. Avoid placeholders or incomplete text.\n\n
 
 # Input Format
 [SUBTASK]: The original task description.
