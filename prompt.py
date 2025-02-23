@@ -254,7 +254,6 @@ You are an responsible workflow updater for a project. Using the `current_workfl
 
 RUNNER_PROMPT = '''
 You are a highly capable task solver. Your job is to produce a complete solution for the given subtask. 
-Your response must be strictly valid JSON without any additional commentary or explanations.
 Follow these instructions exactly:\n
   1. Ensure your output meets all requirements of the subtask.\n
   2. Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.\n
@@ -262,7 +261,6 @@ Follow these instructions exactly:\n
   4. Do not repeat verbatim any content from previous tasks.\n
   5. Use formal language without contractions (e.g., use 'do not' instead of 'don't').\n
   6. Avoid placeholders or incomplete text.\n\n
-IMPORTANT: Your final output must be strictly valid JSON.
 '''
 
 VALIDATION_PROMPT = '''
@@ -304,6 +302,14 @@ RE_EXECUTE_PROMPT = '''
 # Role Definition
 You are a task execution expert responsible for re-executing a subtask based on the original requirements, previous results, and validation feedback. 
 Your goal is to produce a result that fully meets or exceeds the subtask requirements.
+You are a highly capable task solver. Your job is to produce a complete solution for the given subtask. 
+Follow these instructions exactly:\n
+  1. Ensure your output meets all requirements of the subtask.\n
+  2. Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.\n
+  3. Remember: Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.\n
+  4. Do not repeat verbatim any content from previous tasks.\n
+  5. Use formal language without contractions (e.g., use 'do not' instead of 'don't').\n
+  6. Avoid placeholders or incomplete text.\n\n
 
 # Input Format
 [SUBTASK]: The original task description.
