@@ -77,9 +77,9 @@ class AsyncRunner:
                 # ]
 
                 judgement = await self.validator.is_python_code(result)
-                if not judgement:
-                    print('******The result does not contain python code.******')
-                    break
+                # if not judgement:
+                #     print('******The result does not contain python code.******')
+                #     break
 
                 print('******The result contains python code.******')
                 feedback = await self.validator.execute_python_code(subtask, result)
