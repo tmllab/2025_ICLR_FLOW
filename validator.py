@@ -1,6 +1,8 @@
 from gptClient import GPTClient
 from config import Config
 import prompt
+import sys
+import io
 
 class Validator:
     def __init__(self):
@@ -50,81 +52,20 @@ class Validator:
         else:
             return True
     
-    async def execute_python_code(self, task_obj, result):
-        """
-        Execute Python code and validate if it meets the task requirements
-        
-        Args:
-            task_obj: Task description
-            result: Python code to execute
-        
-        Returns:
-            dict: Execution results containing:
-                - success (bool): Whether execution succeeded
-                - output (str): Execution output or error message
-                - validation (str): GPT validation feedback
-        """
-        print('---execute_python_code---')
+    async def execute_python_code(self, code_str): 
+        """Executes a Python script from a string and captures the output."""
+        # Redirect stdout
+        old_stdout = sys.stdout
+        sys.stdout = io.StringIO()
+        exec_globals = {"code": code_str}
         try:
-            print('---first layer--')
-            # Create local namespace and capture output
-            local_namespace = {}
-            from io import StringIO
-            import sys
-            output = StringIO()
-            sys.stdout = output
-            
-            try:
-                print('second layer')
-                # Execute code
-                print('Whole code validated')
-                exec(result, {}, local_namespace)
-                execution_output = output.getvalue()
-                
-                # Get defined callable objects
-                defined_objects = {
-                    name: obj for name, obj in local_namespace.items()
-                    if callable(obj) and not name.startswith('__')
-                }
-                
-            finally:
-                sys.stdout = sys.__stdout__
-
-            # Handle execution results
-            if defined_objects:
-                # Test functions and classes
-                print('Class/function validated')
-                test_results = []
-                for name, obj in defined_objects.items():
-                    if isinstance(obj, type):  # Class
-                        print('Class validated')
-                        try:
-                            instance = obj()
-                            test_results.append(f"Created instance of class {name}")
-                        except Exception as e:
-                            test_results.append(f"Class {name} error: {str(e)}")
-                    else:  # Function
-                        print('Function validated')
-                        try:
-                            # Try with no arguments first
-                            result = obj()
-                            test_results.append(f"Function {name} executed successfully")
-                        except TypeError:
-                            test_results.append(f"Function {name} requires parameters")
-                        except Exception as e:
-                            test_results.append(f"Function {name} error: {str(e)}")
-                
-                execution_output = "\n".join(test_results)
-            
-            return {
-                'success': True,
-                'output': execution_output,
-                #'validation': gpt_validation
-            }
-                
+            # Execute the provided code string
+            exec(code_str, exec_globals)
         except Exception as e:
-            return {
-                'success': False,
-                'output': f"Execution error: {str(e)}",
-                #'validation': "Code execution failed"
-            }
+            print(f"Error executing code: {e}")
+        finally:
+            # Capture the output
+            output = sys.stdout.getvalue()
+            sys.stdout = old_stdout
+        
+        return output
