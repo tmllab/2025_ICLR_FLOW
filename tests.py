@@ -116,13 +116,179 @@ def broken_function()
     print("This has syntax error")
 """
 
-# 运行测试
+# 测试例子：图形化绘图应用
+task5 = "创建一个简单的绘图应用，包含画笔工具、形状工具和颜色选择器"
+code5 = """
+import tkinter as tk
+from tkinter import colorchooser, ttk
+
+class DrawingTool:
+    def __init__(self, name, draw_function):
+        self.name = name
+        self.draw_function = draw_function
+
+class Shape:
+    def __init__(self, start_x, start_y, end_x, end_y, color):
+        self.start_x = start_x
+        self.start_y = start_y
+        self.end_x = end_x
+        self.end_y = end_y
+        self.color = color
+
+class Rectangle(Shape):
+    def draw(self, canvas):
+        return canvas.create_rectangle(
+            self.start_x, self.start_y,
+            self.end_x, self.end_y,
+            fill=self.color
+        )
+
+class Circle(Shape):
+    def draw(self, canvas):
+        return canvas.create_oval(
+            self.start_x, self.start_y,
+            self.end_x, self.end_y,
+            fill=self.color
+        )
+
+class DrawingApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("简单绘图应用")
+        
+        # 初始化变量
+        self.current_tool = None
+        self.current_color = "#000000"
+        self.start_x = None
+        self.start_y = None
+        self.shapes = []
+        
+        self.setup_ui()
+        self.setup_tools()
+        
+    def setup_ui(self):
+        # 创建工具栏
+        self.toolbar = ttk.Frame(self.root)
+        self.toolbar.pack(side=tk.TOP, fill=tk.X)
+        
+        # 创建画布
+        self.canvas = tk.Canvas(
+            self.root,
+            width=600,
+            height=400,
+            bg="white"
+        )
+        self.canvas.pack(expand=True, fill=tk.BOTH)
+        
+        # 绑定事件
+        self.canvas.bind("<Button-1>", self.start_drawing)
+        self.canvas.bind("<B1-Motion>", self.draw)
+        self.canvas.bind("<ButtonRelease-1>", self.stop_drawing)
+        
+    def setup_tools(self):
+        # 创建工具按钮
+        ttk.Button(
+            self.toolbar,
+            text="矩形",
+            command=lambda: self.select_tool("rectangle")
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            self.toolbar,
+            text="圆形",
+            command=lambda: self.select_tool("circle")
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            self.toolbar,
+            text="选择颜色",
+            command=self.choose_color
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            self.toolbar,
+            text="清除",
+            command=self.clear_canvas
+        ).pack(side=tk.LEFT, padx=5)
+        
+    def select_tool(self, tool_name):
+        self.current_tool = tool_name
+        
+    def choose_color(self):
+        color = colorchooser.askcolor(color=self.current_color)[1]
+        if color:
+            self.current_color = color
+            
+    def clear_canvas(self):
+        self.canvas.delete("all")
+        self.shapes = []
+        
+    def start_drawing(self, event):
+        self.start_x = event.x
+        self.start_y = event.y
+        
+    def draw(self, event):
+        if not self.current_tool:
+            return
+            
+        # 删除上一次的预览
+        if hasattr(self, 'preview_shape'):
+            self.canvas.delete(self.preview_shape)
+            
+        # 创建新的预览
+        if self.current_tool == "rectangle":
+            shape = Rectangle(
+                self.start_x, self.start_y,
+                event.x, event.y,
+                self.current_color
+            )
+        else:  # circle
+            shape = Circle(
+                self.start_x, self.start_y,
+                event.x, event.y,
+                self.current_color
+            )
+            
+        self.preview_shape = shape.draw(self.canvas)
+        
+    def stop_drawing(self, event):
+        if not self.current_tool:
+            return
+            
+        # 创建最终形状
+        if self.current_tool == "rectangle":
+            shape = Rectangle(
+                self.start_x, self.start_y,
+                event.x, event.y,
+                self.current_color
+            )
+        else:  # circle
+            shape = Circle(
+                self.start_x, self.start_y,
+                event.x, event.y,
+                self.current_color
+            )
+            
+        self.shapes.append(shape)
+        shape.draw(self.canvas)
+        
+        if hasattr(self, 'preview_shape'):
+            self.canvas.delete(self.preview_shape)
+            del self.preview_shape
+
+# 创建并运行应用
+root = tk.Tk()
+app = DrawingApp(root)
+root.mainloop()
+"""
+
 def run_tests():
     tests = [
         (task1, code1),
         (task2, code2),
         (task3, code3),
-        (task4, code4)
+        (task4, code4),
+        (task5, code5)  # 添加新的测试用例
     ]
     
     for task, code in tests:

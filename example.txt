@@ -2,93 +2,70 @@
 import tkinter as tk
 import random
 
-# AI Logic
-def select_ai_choice():
-    choices = ['Rock', 'Paper', 'Scissors']
-    return random.choice(choices)
+class RockPaperScissorsGame:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Rock-Paper-Scissors Game")
+        self.master.geometry("400x300")
+        self.master.configure(bg="#f0f0f0")
 
-# Game rules
-def determine_result(player_choice, ai_choice):
-    if player_choice == ai_choice:
-        return "Draw"
-    elif (player_choice == "Rock" and ai_choice == "Scissors") or \
-         (player_choice == "Paper" and ai_choice == "Rock") or \
-         (player_choice == "Scissors" and ai_choice == "Paper"):
-        return "Win"
-    else:
-        return "Lose"
+        self.player_choice = None
+        self.ai_choice = None
+        self.result = None
 
-# GUI Class
-class RPSGame:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Rock-Paper-Scissors Game")
-        self.root.geometry("400x300")
-        self.root.configure(bg="#f0f0f0")
+        # Title label
+        self.title_label = tk.Label(master, text="Rock-Paper-Scissors", font=("Arial", 20, "bold"), bg="#f0f0f0")
+        self.title_label.pack(pady=20)
 
-        self.player_choice = tk.StringVar()
-        self.ai_choice = tk.StringVar()
-        self.result = tk.StringVar()
+        # Player choice section
+        self.player_choice_label = tk.Label(master, text="Your Choice:", bg="#f0f0f0")
+        self.player_choice_label.pack()
+        self.player_choice_display = tk.Label(master, text="None", bg="#f0f0f0")
+        self.player_choice_display.pack()
 
-        self.create_widgets()
+        # AI choice section
+        self.ai_choice_label = tk.Label(master, text="AI Choice:", bg="#f0f0f0")
+        self.ai_choice_label.pack()
+        self.ai_choice_display = tk.Label(master, text="None", bg="#f0f0f0")
+        self.ai_choice_display.pack()
 
-    def create_widgets(self):
-        label = tk.Label(self.root, text="Choose your option:", font=("Arial", 16), bg="#f0f0f0", fg="#333")
-        label.pack(pady=20)
+        # Result section
+        self.result_label = tk.Label(master, text="Result:", bg="#f0f0f0")
+        self.result_label.pack()
+        self.result_display = tk.Label(master, text="Not determined yet", bg="#f0f0f0")
+        self.result_display.pack()
 
-        button_frame = tk.Frame(self.root)
-        button_frame.pack(pady=20)
+        # Buttons
+        self.rock_button = tk.Button(master, text="Rock", command=lambda: self.select_choice('Rock'))
+        self.rock_button.pack(side=tk.LEFT, padx=20, pady=20)
+        self.paper_button = tk.Button(master, text="Paper", command=lambda: self.select_choice('Paper'))
+        self.paper_button.pack(side=tk.LEFT, padx=20, pady=20)
+        self.scissors_button = tk.Button(master, text="Scissors", command=lambda: self.select_choice('Scissors'))
+        self.scissors_button.pack(side=tk.LEFT, padx=20, pady=20)
 
-        rock_button = tk.Button(button_frame, text="Rock", command=lambda: self.play_game("Rock"))
-        rock_button.grid(row=0, column=0, padx=10)
+    def select_choice(self, choice):
+        self.player_choice = choice
+        self.player_choice_display.config(text=self.player_choice)
+        self.ai_choice = self.ai_random_selection()
+        self.ai_choice_display.config(text=self.ai_choice)
+        self.result = self.compare_choices()
+        self.result_display.config(text=self.result)
 
-        paper_button = tk.Button(button_frame, text="Paper", command=lambda: self.play_game("Paper"))
-        paper_button.grid(row=0, column=1, padx=10)
+    def ai_random_selection(self):
+        return random.choice(['Rock', 'Paper', 'Scissors'])
 
-        scissors_button = tk.Button(button_frame, text="Scissors", command=lambda: self.play_game("Scissors"))
-        scissors_button.grid(row=0, column=2, padx=10)
-
-        self.display_player_label = tk.Label(self.root, text="Player Choice: None", font=("Arial", 14), bg="#f0f0f0")
-        self.display_player_label.pack(pady=10)
-
-        self.display_ai_label = tk.Label(self.root, text="AI Choice: None", font=("Arial", 14), bg="#f0f0f0")
-        self.display_ai_label.pack(pady=10)
-
-        self.display_result_label = tk.Label(self.root, text="Game Result: None", font=("Arial", 14), bg="#f0f0f0")
-        self.display_result_label.pack(pady=10)
-
-        restart_button = tk.Button(self.root, text="Restart Game", command=self.restart_game)
-        restart_button.pack(pady=20)
-
-    def play_game(self, player_choice):
-        self.player_choice.set(player_choice)
-        ai_choice = select_ai_choice()
-        self.ai_choice.set(ai_choice)
-        result = determine_result(player_choice, ai_choice)
-        self.result.set(result)
-
-        # Update the display labels
-        self.display_player_label.config(text=f"Player Choice: {self.player_choice.get()}")
-        self.display_ai_label.config(text=f"AI Choice: {self.ai_choice.get()}")
-        self.display_result_label.config(text=f"Game Result: {self.result.get()}")
-
-    def restart_game(self):
-        self.player_choice.set("")
-        self.ai_choice.set("")
-        self.result.set("")
-        self.display_player_label.config(text="Player Choice: None")
-        self.display_ai_label.config(text="AI Choice: None")
-        self.display_result_label.config(text="Game Result: None")
+    def compare_choices(self):
+        if self.player_choice == self.ai_choice:
+            return "draw"
+        elif (self.player_choice == 'Rock' and self.ai_choice == 'Scissors') or \
+             (self.player_choice == 'Paper' and self.ai_choice == 'Rock') or \
+             (self.player_choice == 'Scissors' and self.ai_choice == 'Paper'):
+            return "win"
+        else:
+            return "lose"
 
 if __name__ == "__main__":
     root = tk.Tk()
-    game = RPSGame(root)
+    game = RockPaperScissorsGame(root)
     root.mainloop()
 ```
-
-### Explanation:
-- The code above implements a Rock-Paper-Scissors game using `tkinter` for the GUI.
-- The naive AI randomly selects between Rock, Paper, or Scissors.
-- The game determines the result based on the player's choice and the AI's choice.
-- The GUI consists of buttons for player choices, displays for player choice, AI choice, and game result, and a restart button.
-- The game flow is interactive, providing real-time feedback to the player.

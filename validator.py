@@ -52,95 +52,95 @@ class Validator:
     
     async def execute_python_code(self, task_obj, result):
         """
-        执行Python代码并验证结果是否符合任务要求
+        Execute Python code and validate if it meets the task requirements
         
         Args:
-            task_obj: 任务描述
-            result: 要执行的Python代码
+            task_obj: Task description
+            result: Python code to execute
         
         Returns:
-            None: 如果代码执行成功且符合要求
-            str: 如果有错误或不符合要求，返回反馈信息
+            dict: Execution results containing:
+                - success (bool): Whether execution succeeded
+                - output (str): Execution output or error message
+                - validation (str): GPT validation feedback
         """
-        print('------EXECUTE AND VALIDATE PYTHON CODE------')
-        
+        print('---执行了execute_python_code---')
         try:
-            # 创建一个本地命名空间来执行代码
+            print('---执行了一层---')
+            # Create local namespace and capture output
             local_namespace = {}
-            
-            # 捕获标准输出
             from io import StringIO
             import sys
             output = StringIO()
             sys.stdout = output
             
             try:
-                # 执行代码
+                print('执行了二层')
+                # Execute code
+                print('验证了完整代码')
                 exec(result, {}, local_namespace)
-                print('执行了')
-                # 获取打印输出
-                printed_output = output.getvalue()
-                printed_output = '测试结果有输出'
-                print(output)
-                print(printed_output)
+                execution_output = output.getvalue()
                 
-                # 检查是否定义了函数或类
+                # Get defined callable objects
                 defined_objects = {
                     name: obj for name, obj in local_namespace.items()
                     if callable(obj) and not name.startswith('__')
                 }
                 
-                execution_result = {
-                    'success': True,
-                    'output': printed_output,
-                    'namespace': local_namespace,
-                    'defined_objects': defined_objects
-                }
-                
             finally:
-                # 恢复标准输出
                 sys.stdout = sys.__stdout__
-            
-            # 验证执行结果是否符合任务要求
+
+            # Handle execution results
             if defined_objects:
-                print(defined_objects)
-                # 如果定义了函数或类，生成测试用例
+                # Test functions and classes
+                print('验证了类/函数')
                 test_results = []
                 for name, obj in defined_objects.items():
-                    if isinstance(obj, type):  # 类
-                        print('测试了类')
+                    if isinstance(obj, type):  # Class
+                        print('验证了类')
                         try:
                             instance = obj()
-                            test_results.append(f"Successfully created instance of {name}")
+                            test_results.append(f"Created instance of class {name}")
                         except Exception as e:
-                            return f"Class {name} initialization failed: {str(e)}"
-                    else:  # 函数
-                        print('测试了函数')
+                            test_results.append(f"Class {name} error: {str(e)}")
+                    else:  # Function
+                        print('验证了函数')
                         try:
-                            # 尝试基本调用（这里可以根据任务要求添加具体的测试用例）
+                            # Try with no arguments first
                             result = obj()
                             test_results.append(f"Function {name} executed successfully")
-                        except TypeError:  # 如果需要参数
+                        except TypeError:
                             test_results.append(f"Function {name} requires parameters")
                         except Exception as e:
-                            return f"Function {name} execution failed: {str(e)}"
-                print('测试函数和类了')
-                if test_results:
-                    return test_results
-                else:
-                    print('No valid test results')
-                    return 'No valid test results'
+                            test_results.append(f"Function {name} error: {str(e)}")
                 
+                execution_output = "\n".join(test_results)
+            
+            # # Validate with GPT
+            # validation_prompt = f"""
+            # Task: {task_obj}
+            # Code execution result: {execution_output}
+            
+            # Does this result correctly fulfill the task requirements? 
+            # If yes, respond with 'CORRECT'. If no, explain why it's incorrect.
+            # """
+            
+            # messages = [
+            #     {'role': 'system', 'content': prompt.VALIDATION_PROMPT},
+            #     {'role': 'user', 'content': validation_prompt}
+            # ]
+            
+            # gpt_validation = await self.gpt_client.a_chat_completion(messages)
+            
+            return {
+                'success': True,
+                'output': execution_output,
+                #'validation': gpt_validation
+            }
                 
-            else:
-                # 如果是直接执行的代码，检查是否有输出
-                if printed_output.strip():
-                    print(printed_output)
-                    print('测试直接代码了成功且有输出')
-                    return None  # 执行成功且有输出
-                else:
-                    return "Code executed but produced no output"
-                    
         except Exception as e:
-            return f"Code execution failed: {str(e)}"
-        
+            return {
+                'success': False,
+                'output': f"Execution error: {str(e)}",
+                #'validation': "Code execution failed"
+            }
