@@ -3,6 +3,7 @@ from config import Config
 import prompt
 import sys
 import io
+import asyncio
 
 class Validator:
     def __init__(self):
@@ -69,3 +70,50 @@ class Validator:
             sys.stdout = old_stdout
         
         return output
+    
+
+
+
+
+async def main():
+    # Your main logic here
+    print("Running main...")
+    test_code = """
+def add(a, b):
+    return a * b  # Intentional bug
+
+# We'll define a function that tests each assertion individually.
+# Each assertion is wrapped in try/except to capture all failures.
+def run_tests():
+    failures = []
+
+    try:
+        assert add(2, 3) == 5, "Test failed: add(2,3) should return 5"
+    except AssertionError as e:
+        failures.append(str(e))
+
+    try:
+        assert add(-1, 1) == 0, "Test failed: add(-1,1) should return 0"
+    except AssertionError as e:
+        failures.append(str(e))
+
+    try:
+        assert add(0, 0) == 0, "Test failed: add(0,0) should return 0"
+    except AssertionError as e:
+        failures.append(str(e))
+
+    if failures:
+        for f in failures:
+            print(f)
+    else:
+        print("All tests passed!")
+
+# Execute our tests
+run_tests()
+        """
+    val = Validator()
+    result = await val.execute_python_code(test_code)
+    print(result)
+
+if __name__ == "__main__":
+    asyncio.run(main())
