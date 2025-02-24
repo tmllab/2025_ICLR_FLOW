@@ -50,8 +50,7 @@ class AsyncRunner:
             "1. Solve only your assigned subtask, referring to the context only if necessary.\n"
             "2. Ensure your solution aligns with the overall goal and is formatted so that it can be directly used as input for downstream tasks.\n"
             "3. Do not repeat any previous output verbatim.\n"
-            "4. Provide only valid JSON as your response.\n"
-            "5. Avoid contractions in your response.\n"
+            "4. Avoid contractions in your response.\n"
         )
 
         messages = [
@@ -59,47 +58,36 @@ class AsyncRunner:
             {'role': 'user', 'content': user_content}
         ]
 
-        i = 0
-        while i < self.max_itt:
-            print('******_execute one time******')
-            if i != 0:
-                # feedback = await self.validator.validate(subtask, result)
-                # if not feedback:
-                #     break
-                # user_content = f'''
-                #     Here is the subtask: {subtask}
-                #     Here is the result: {result}
-                #     Here is the validation feedback: {feedback}
-                # '''
-                # messages = [
-                #     {'role': 'system', 'content': prompt.RE_EXECUTE_PROMPT},
-                #     {'role': 'user', 'content': user_content}
-                # ]
+        # i = 0
+        # while i < self.max_itt:
+        #     print('******_execute one time******')
+        #     if i != 0:
+        #         judgement = await self.validator.is_python_code(result)
+                
+        #         if not judgement:
+        #             print('******The result does not contain python code.******')
+        #             break
 
-                judgement = await self.validator.is_python_code(result)
-                if not judgement:
-                    print('******The result does not contain python code.******')
-                    break
-
-                print('******The result contains python code.******')
-                runresult = await self.validator.execute_python_code(subtask, result)
-                testback = runresult['success']
-                feedback = runresult['output']
-                if testback:
-                    print('******Perfect python code, subtask satisfied******')
-                    break
-                print('******Not Perfect code, need improve******')
-                user_content = f'''
-                    Here is the subtask: {subtask}
-                    Here is the result: {result}
-                    Here is the validation feedback: {feedback}
-                '''
-                messages = [
-                    {'role': 'system', 'content': prompt.RE_EXECUTE_PROMPT},
-                    {'role': 'user', 'content': user_content}
-                ]
-            result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
-            i += 1
+        #         print('******The result contains python code.******')
+        #         runresult = await self.validator.execute_python_code(subtask, result)
+        #         testback = runresult['success']
+        #         feedback = runresult['output']
+        #         if testback:
+        #             print('******Perfect python code, subtask satisfied******')
+        #             break
+        #         print('******Not Perfect code, need improve******')
+        #         user_content = f'''
+        #             Here is the subtask: {subtask}
+        #             Here is the result: {result}
+        #             Here is the validation feedback: {feedback}
+        #         '''
+        #         messages = [
+        #             {'role': 'system', 'content': prompt.RE_EXECUTE_PROMPT},
+        #             {'role': 'user', 'content': user_content}
+        #         ]
+        #     result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+        #     i += 1
+        result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
         
         return result
 

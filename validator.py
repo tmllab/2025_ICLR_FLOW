@@ -64,9 +64,9 @@ class Validator:
                 - output (str): Execution output or error message
                 - validation (str): GPT validation feedback
         """
-        print('---执行了execute_python_code---')
+        print('---execute_python_code---')
         try:
-            print('---执行了一层---')
+            print('---first layer--')
             # Create local namespace and capture output
             local_namespace = {}
             from io import StringIO
@@ -75,9 +75,9 @@ class Validator:
             sys.stdout = output
             
             try:
-                print('执行了二层')
+                print('second layer')
                 # Execute code
-                print('验证了完整代码')
+                print('Whole code validated')
                 exec(result, {}, local_namespace)
                 execution_output = output.getvalue()
                 
@@ -93,18 +93,18 @@ class Validator:
             # Handle execution results
             if defined_objects:
                 # Test functions and classes
-                print('验证了类/函数')
+                print('Class/function validated')
                 test_results = []
                 for name, obj in defined_objects.items():
                     if isinstance(obj, type):  # Class
-                        print('验证了类')
+                        print('Class validated')
                         try:
                             instance = obj()
                             test_results.append(f"Created instance of class {name}")
                         except Exception as e:
                             test_results.append(f"Class {name} error: {str(e)}")
                     else:  # Function
-                        print('验证了函数')
+                        print('Function validated')
                         try:
                             # Try with no arguments first
                             result = obj()
@@ -115,22 +115,6 @@ class Validator:
                             test_results.append(f"Function {name} error: {str(e)}")
                 
                 execution_output = "\n".join(test_results)
-            
-            # # Validate with GPT
-            # validation_prompt = f"""
-            # Task: {task_obj}
-            # Code execution result: {execution_output}
-            
-            # Does this result correctly fulfill the task requirements? 
-            # If yes, respond with 'CORRECT'. If no, explain why it's incorrect.
-            # """
-            
-            # messages = [
-            #     {'role': 'system', 'content': prompt.VALIDATION_PROMPT},
-            #     {'role': 'user', 'content': validation_prompt}
-            # ]
-            
-            # gpt_validation = await self.gpt_client.a_chat_completion(messages)
             
             return {
                 'success': True,
