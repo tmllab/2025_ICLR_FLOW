@@ -14,8 +14,12 @@ class Validator:
         )     
 
     async def validate(self, task_obj, result):
-        print('------VALIDATE ONE TIME------')
+        # judge whether the result contains python code
+        if self.is_python_code(result):
+            # if is python code
+            return self.python_validate(task_obj, result)
 
+        # if not python code, execute general validation
         system_content = prompt.VALIDATION_PROMPT
         user_content = f'''
             Here is the subtask: {task_obj}
@@ -34,25 +38,6 @@ class Validator:
         else:
             return feedback
         
-    async def python_validate(self, result) -> str:
-        print('------RUN Python_validate function ONE TIME------')
-        # whether python code
-        judgement = await self.is_python_code(result)
-        # not python code
-        if not judgement:
-            print('***Not python code***')
-            return None
-        # is python code
-        print('***is python code***')
-        runresult = await self.execute_python_code(result)
-        print('***runresult is:***')
-        print(runresult)
-        if 'Error executing code:' not in runresult:
-            print('***Python code with no bugs***')
-            return None
-        print('***Python code with bugs***')
-        return runresult
-    
     async def is_python_code(self, result) -> bool:
         print('------CHECK IF PYTHON ONE TIME------')
         system_content = prompt.IS_PYTHON_PROMPT
@@ -68,41 +53,65 @@ class Validator:
         feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
         
         if feedback == "N":
-            print('---python code not contained.---')
+            print('---no python code contained.---')
             return False
         else:
             print('---python code contained.---')
             return True
+        
+    async def python_validate(self, task_obj, result) -> str:
+        # Generate python test code and execute test code.
+        print('------RUN Python_validate function ONE TIME------')
+        test_code = await self.generate_test_function(task_obj, result)
+        runresult = await self.execute_python_code(test_code)
+
+        print(f'***runresult is: {runresult}***')
+
+        if 'Error executing code:' not in runresult:
+            print('***Python code with no bugs***')
+            return None
+        print('***Python code with bugs***')
+
+        return runresult
     
-    async def execute_python_code(self, result): 
-        print('------RUN execute function to CHECK bugs ONE TIME------')
+    async def generate_test_function(self, task_obj, result) -> str:
+        # Generate test function according to task objective and execute result
         system_content_exe = prompt.TESTCODE_GENERATION_PROMPT
+        # TODO: modify the prompt in line 79, task_obj is the task objective, LLM should know what this task for in order to generate a test code.
         user_content_exe = f'''
+            Here is the task object: {task_obj}
             Here is the result: {result}
         '''
         messages_exe = [
             {'role': 'system', 'content': system_content_exe},
             {'role': 'user', 'content': user_content_exe}
         ]
-        code_str = await self.gpt_client.a_chat_completion(messages_exe, temperature=Config.TEMPERATURE)
-        code_str = code_str.strip('```python').strip('```')
+
+        test_code = await self.gpt_client.a_chat_completion(messages_exe, temperature=Config.TEMPERATURE)
+        test_code = test_code.strip('```python').strip('```')
+
+        return test_code
+    
+    async def execute_python_code(self, test_code): 
+        print('------RUN execute function to CHECK bugs ONE TIME------')
+        
         print('------Generated Test Code is:------')
-        print(code_str)
+        print(test_code)
 
         """Executes a Python script from a string and captures the output."""
         # Redirect stdout
-        old_stdout = sys.stdout
+        origin_stdout = sys.stdout
         sys.stdout = io.StringIO()
-        exec_globals = {"code": code_str}
+        exec_globals = {"code": test_code}
         try:
             # Execute the provided code string
-            exec(code_str, exec_globals)
+            exec(test_code, exec_globals)
         except Exception as e:
             print(f"Error executing code: {e}")
         finally:
             # Capture the output
             output = sys.stdout.getvalue()
-            sys.stdout = old_stdout
+            sys.stdout = origin_stdout
         
         return output
     

@@ -60,7 +60,7 @@ class AsyncRunner:
         i = 0
         while i < self.max_itt:
             if i != 0:
-                feedback = await self.validator.python_validate(result)
+                feedback = await self.validator.validate(subtask, result)
                 if feedback == None:
                     print('---Not python/Python no bugs.---')
                     # Break if result is not python code or python code is perfect.
