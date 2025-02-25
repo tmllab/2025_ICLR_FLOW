@@ -55,14 +55,17 @@ class AsyncRunner:
             {'role': 'system', 'content': system_content},
             {'role': 'user', 'content': user_content}
         ]
+        print('------Run _execute ONE TIME------')
 
         i = 0
         while i < self.max_itt:
             if i != 0:
-                feedback = self.validator.python_validate(subtask, result)
-                if feedback:
+                feedback = await self.validator.python_validate(result)
+                if feedback == None:
+                    print('---Not python/Python no bugs.---')
                     # Break if result is not python code or python code is perfect.
                     break
+                print('---Python has bugs---')
 
                 # Re-execute with feedback
                 user_content = f'''

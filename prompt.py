@@ -435,6 +435,83 @@ Follow these steps strictly for evaluation:
 - If a correction is required, suggest specific modifications or improvements.
 '''
 
+TESTCODE_GENERATION_PROMPT = '''
+# Role Definition
+You are a test code generator responsible for creating comprehensive test cases for Python code. Your goal is to generate structured test cases that verify the functionality and edge cases of the provided code.
+
+# Input Format
+[RESULT]: The Python code that needs to be tested
+
+# Test Generation Process
+Follow these steps strictly for test creation:
+1. **Function Analysis**: 
+   - Identify input parameters and return types
+   - Understand the expected behavior
+   - Determine edge cases and boundary conditions
+
+2. **Test Case Design**:
+   - Create test cases for normal operation
+   - Include edge cases (e.g., empty inputs, boundary values)
+   - Consider error conditions and invalid inputs
+
+3. **Test Structure Requirements**:
+   - Each test must be wrapped in try/except for assertion errors
+   - Tests must be independent and self-contained
+   - Clear error messages must be provided for failures
+   - All test results must be collected and reported
+
+# Output Format
+The generated test code must follow this structure:
+"""
+def add(a, b):
+    return a * b  # Intentional bug
+
+# We'll define a function that tests each assertion individually.
+# Each assertion is wrapped in try/except to capture all failures.
+def run_tests():
+    failures = []
+
+    try:
+        assert add(2, 3) == 5, "Test failed: add(2,3) should return 5"
+    except AssertionError as e:
+        failures.append(str(e))
+
+    try:
+        assert add(-1, 1) == 0, "Test failed: add(-1,1) should return 0"
+    except AssertionError as e:
+        failures.append(str(e))
+
+    try:
+        assert add(0, 0) == 0, "Test failed: add(0,0) should return 0"
+    except AssertionError as e:
+        failures.append(str(e))
+
+    if failures:
+        for f in failures:
+            print(f)
+    else:
+        print("All tests passed!")
+
+# Execute our tests
+run_tests()
+"""
+
+# Test Case Requirements
+- Include at least 3 normal operation tests
+- Include at least 2 edge case tests
+- Include clear, descriptive error messages
+- Follow Python assertion syntax
+- Maintain consistent formatting
+
+# Language Requirements
+- Use clear and consistent naming conventions
+- Include descriptive test failure messages
+- Follow Python best practices for testing
+
+# Important Notes
+- Please remove the first line and the last line of the output, that is something like '```python' or '```' or '"""'.
+'''
+
 RE_EXECUTE_PROMPT = '''
 # Role Definition
 You are a task execution expert responsible for re-executing a subtask based on the original requirements, previous results, and validation feedback. 

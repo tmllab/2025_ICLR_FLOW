@@ -34,19 +34,24 @@ class Validator:
         else:
             return feedback
         
-    async def python_validate(self, subtask, result) -> str:
+    async def python_validate(self, result) -> str:
+        print('------RUN Python_validate function ONE TIME------')
         # whether python code
         judgement = await self.is_python_code(result)
         # not python code
         if not judgement:
+            print('***Not python code***')
             return None
         # is python code
-        runresult = await self.validator.execute_python_code(subtask, result)
-        testback = runresult['success']
-        feedback = runresult['output']
-        if testback:
+        print('***is python code***')
+        runresult = await self.execute_python_code(result)
+        print('***runresult is:***')
+        print(runresult)
+        if 'Error executing code:' not in runresult:
+            print('***Python code with no bugs***')
             return None
-        return feedback
+        print('***Python code with bugs***')
+        return runresult
     
     async def is_python_code(self, result) -> bool:
         print('------CHECK IF PYTHON ONE TIME------')
@@ -63,11 +68,26 @@ class Validator:
         feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
         
         if feedback == "N":
+            print('---python code not contained.---')
             return False
         else:
+            print('---python code contained.---')
             return True
     
-    async def execute_python_code(self, code_str): 
+    async def execute_python_code(self, result): 
+        print('------RUN execute function to CHECK bugs ONE TIME------')
+        system_content_exe = prompt.TESTCODE_GENERATION_PROMPT
+        user_content_exe = f'''
+            Here is the result: {result}
+        '''
+        messages_exe = [
+            {'role': 'system', 'content': system_content_exe},
+            {'role': 'user', 'content': user_content_exe}
+        ]
+        code_str = await self.gpt_client.a_chat_completion(messages_exe, temperature=Config.TEMPERATURE)
+        print('------Generated Test Code is:------')
+        print(code_str)
+
         """Executes a Python script from a string and captures the output."""
         # Redirect stdout
         old_stdout = sys.stdout
