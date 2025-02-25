@@ -29,7 +29,6 @@ class AsyncRunner:
         )
         self.max_itt = max_itt
         self.validator = Validator()
-        self.validator2 = Validator()
 
     async def _execute(self, subtask: str, agent_id: str, context: str, next_objective: str) -> str:
         logger.info(f"Task '{subtask}' started by agent '{agent_id}'.")
@@ -50,7 +49,6 @@ class AsyncRunner:
             "1. Solve only your assigned subtask, referring to the context only if necessary.\n"
             "2. Ensure your solution aligns with the overall goal and is formatted so that it can be directly used as input for downstream tasks.\n"
             "3. Do not repeat any previous output verbatim.\n"
-            "4. Avoid contractions in your response.\n"
         )
 
         messages = [
@@ -58,36 +56,26 @@ class AsyncRunner:
             {'role': 'user', 'content': user_content}
         ]
 
-        # i = 0
-        # while i < self.max_itt:
-        #     print('******_execute one time******')
-        #     if i != 0:
-        #         judgement = await self.validator.is_python_code(result)
-                
-        #         if not judgement:
-        #             print('******The result does not contain python code.******')
-        #             break
+        i = 0
+        while i < self.max_itt:
+            if i != 0:
+                feedback = self.validator.python_validate(subtask, result)
+                if feedback:
+                    # Break if result is not python code or python code is perfect.
+                    break
 
-        #         print('******The result contains python code.******')
-        #         runresult = await self.validator.execute_python_code(subtask, result)
-        #         testback = runresult['success']
-        #         feedback = runresult['output']
-        #         if testback:
-        #             print('******Perfect python code, subtask satisfied******')
-        #             break
-        #         print('******Not Perfect code, need improve******')
-        #         user_content = f'''
-        #             Here is the subtask: {subtask}
-        #             Here is the result: {result}
-        #             Here is the validation feedback: {feedback}
-        #         '''
-        #         messages = [
-        #             {'role': 'system', 'content': prompt.RE_EXECUTE_PROMPT},
-        #             {'role': 'user', 'content': user_content}
-        #         ]
-        #     result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
-        #     i += 1
-        result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+                # Re-execute with feedback
+                user_content = f'''
+                    Here is the subtask: {subtask}
+                    Here is the result: {result}
+                    Here is the validation feedback: {feedback}
+                '''
+                messages = [
+                    {'role': 'system', 'content': prompt.RE_EXECUTE_PROMPT},
+                    {'role': 'user', 'content': user_content}
+                ]
+            result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+            i += 1
         
         return result
 

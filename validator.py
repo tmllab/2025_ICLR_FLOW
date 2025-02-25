@@ -33,6 +33,20 @@ class Validator:
             return None
         else:
             return feedback
+        
+    async def python_validate(self, subtask, result) -> str:
+        # whether python code
+        judgement = await self.is_python_code(result)
+        # not python code
+        if not judgement:
+            return None
+        # is python code
+        runresult = await self.validator.execute_python_code(subtask, result)
+        testback = runresult['success']
+        feedback = runresult['output']
+        if testback:
+            return None
+        return feedback
     
     async def is_python_code(self, result) -> bool:
         print('------CHECK IF PYTHON ONE TIME------')
@@ -70,6 +84,7 @@ class Validator:
             sys.stdout = old_stdout
         
         return output
+    
     
 
 
