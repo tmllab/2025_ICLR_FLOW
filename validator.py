@@ -7,11 +7,14 @@ import asyncio
 
 class Validator:
     def __init__(self):
+        ## TODO del
         self.gpt_client = GPTClient(
             api_key=Config.OPENAI_API_KEY,
             model=Config.GPT_MODEL,
             temperature=Config.TEMPERATURE
-        )     
+        )    
+        ## TODO self.pythonval = Pythonval()
+        ## TODO self.txtval = Textval() 
 
     async def validate(self, task_obj, result):
         # judge whether the result contains python code

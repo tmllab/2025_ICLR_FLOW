@@ -22,12 +22,14 @@ class AsyncRunner:
     """Executes an individual task asynchronously via GPT."""
     def __init__(self, overall_task: str, max_itt):
         self.overall_task = overall_task
+        ## TODO delete gpt_client
         self.gpt_client = GPTClient(
             api_key=Config.OPENAI_API_KEY,
             model=Config.GPT_MODEL,
             temperature=Config.TEMPERATURE
         )
         self.max_itt = max_itt
+        ## TODO self.executer = TaskExecuter()
         self.validator = Validator()
 
     async def _execute(self, subtask: str, agent_id: str, context: str, next_objective: str) -> str:
@@ -62,10 +64,10 @@ class AsyncRunner:
             if i != 0:
                 feedback = await self.validator.validate(subtask, result)
                 if feedback == None:
-                    print('---Not python/Python no bugs.---')
-                    # Break if result is not python code or python code is perfect.
+                    print('---Result is perfect---')
+                    # Break if result is perfect.
                     break
-                print('---Python has bugs---')
+                print('---has bugs---')
 
                 # Re-execute with feedback
                 user_content = f'''

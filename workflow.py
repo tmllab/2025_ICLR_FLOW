@@ -16,7 +16,7 @@ class Task:
         self.data = data
         self.remaining_dependencies = len(self.prev)
         self.agent = agent
-
+        ##TODO self.history = History()
 
     def to_dict(self) -> Dict[str, Any]:
         """Converts the Task object to a dictionary for JSON serialization."""
