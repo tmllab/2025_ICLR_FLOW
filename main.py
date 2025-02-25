@@ -35,11 +35,15 @@ def main():
     The UI should display the player's choice, the AI's choice, and the game result (win, lose, or draw). 
     Provide an interactive and user-friendly experience.'''
 
+    # Set optimization threshold and number of candidate graphs
+    refine_threshold: int = 3
+    candidate_graphs: int = 10
+
     # Start the timer
     start_time = time.time()
 
     # Run FLOW
-    manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = 3, n_candidate_graphs=10,workflow=None)
+    manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = refine_threshold, n_candidate_graphs=candidate_graphs,workflow=None)
     asyncio.run(manager.run_async())
 
     # Stop the timer
