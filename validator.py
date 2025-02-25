@@ -43,19 +43,12 @@ class Validator:
             print('***Not python code***')
             return None
         # is python code
-<<<<<<< Updated upstream
         print('***is python code***')
         runresult = await self.execute_python_code(result)
         print('***runresult is:***')
         print(runresult)
         if 'Error executing code:' not in runresult:
             print('***Python code with no bugs***')
-=======
-        runresult = await self.execute_python_code(subtask, result)
-        testback = runresult['success']
-        feedback = runresult['output']
-        if testback:
->>>>>>> Stashed changes
             return None
         print('***Python code with bugs***')
         return runresult
