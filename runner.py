@@ -2,6 +2,7 @@ from gptClient import GPTClient
 import logging
 from config import Config
 from workflow import Workflow
+from prompt import RUNNER_PROMPT
 
 # -----------------------------------------------------------------------------
 # Configuration and Logging Setup
@@ -30,18 +31,7 @@ class AsyncRunner:
         logger.info(f"Task '{subtask}' started by agent '{agent_id}'.")
         
         # System instructions for GPT
-        system_content = (
-            "You are a highly capable task solver. Your job is to produce a complete solution for the given subtask. "
-            "Your response must be strictly valid JSON without any additional commentary or explanations. "
-            "Follow these instructions exactly:\n"
-            "1. Ensure your output meets all requirements of the subtask.\n"
-            "2. Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.\n"
-            "3. Remember: Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.\n"
-            "4. Do not repeat verbatim any content from previous tasks.\n"
-            "5. Use formal language without contractions (e.g., use 'do not' instead of 'don't').\n"
-            "6. Avoid placeholders or incomplete text.\n\n"
-            "IMPORTANT: Your final output must be strictly valid JSON."
-        )
+        system_content = RUNNER_PROMPT
 
         print(f'object: {subtask}')
         print(f'next: {next_objective}')
@@ -56,8 +46,7 @@ class AsyncRunner:
             "1. Solve only your assigned subtask, referring to the context only if necessary.\n"
             "2. Ensure your solution aligns with the overall goal and is formatted so that it can be directly used as input for downstream tasks.\n"
             "3. Do not repeat any previous output verbatim.\n"
-            "4. Provide only valid JSON as your response.\n"
-            "5. Avoid contractions in your response.\n"
+            "4. Avoid contractions in your response.\n"
         )
 
         messages = [

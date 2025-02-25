@@ -29,31 +29,32 @@ def main():
     # Ensure UTF-8 encoding for stdout (optional, depending on environment)
     sys.stdout.reconfigure(encoding='utf-8')
 
-    overall_task: str = '''I am designing a website for the International Conference on Learning Representations (ICLR2025), which will take place from April 27, 2025, to May 1, 2025, in San Francisco, California, United States. The conference is organized by the International Association for Learning Representations.
-                            Note that:
-                            1). For each section, I would like to see example HTML content. Additionally, a sample CSS stylesheet should be provided to style the website. The content must be professional, clear, and appropriate for an international academic conference.
-                            2). The website should include all the provided details, including a comprehensive conference schedule and a section dedicated to the conference venue, featuring a map.
-                        '''
+    # Define overall workflow
+    overall_task: str = '''Develop a Rock-Paper-Scissors game with a graphical user interface (GUI) in Python. 
+    The game should allow a player to compete against a naive AI that randomly selects Rock, Paper, or Scissors. 
+    The UI should display the player's choice, the AI's choice, and the game result (win, lose, or draw). 
+    Provide an interactive and user-friendly experience.'''
 
-
-
+    # Start the timer
     start_time = time.time()
 
+    # Run FLOW
     manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = 3, n_candidate_graphs=10,workflow=None)
     asyncio.run(manager.run_async())
 
+    # Stop the timer
     elapsed_time = time.time() - start_time
     logger.info(f"Elapsed time: {elapsed_time:.2f} seconds")
 
-
+    # Store workflow
     workflow_data = {
         tid: task.__dict__ for tid, task in manager.workflow.tasks.items()
     }
     with open('result.json', 'w', encoding='utf-8') as file:
         json.dump(workflow_data, file, indent=4)
 
-    summary = Summary()
     # Generate and save a summary of the workflow results
+    summary = Summary()
     chat_result = summary.summary(overall_task, workflow_data)
     with open("example.txt", "w", encoding="utf-8") as file:
         file.write(chat_result)
