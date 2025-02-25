@@ -17,7 +17,7 @@ class Validator:
         # judge whether the result contains python code
         if self.is_python_code(result):
             # if is python code
-            return self.python_validate(task_obj, result)
+            return await self.python_validate(task_obj, result)
 
         # if not python code, execute general validation
         system_content = prompt.VALIDATION_PROMPT
@@ -77,7 +77,6 @@ class Validator:
     async def generate_test_function(self, task_obj, result) -> str:
         # Generate test function according to task objective and execute result
         system_content_exe = prompt.TESTCODE_GENERATION_PROMPT
-        # TODO: modify the prompt in line 79, task_obj is the task objective, LLM should know what this task for in order to generate a test code.
         user_content_exe = f'''
             Here is the task object: {task_obj}
             Here is the result: {result}
@@ -157,7 +156,6 @@ def run_tests():
 run_tests()
         """
     val = Validator()
-    # TODO: modify this test function
     result = await val.execute_python_code(test_code)
     print(result)
 

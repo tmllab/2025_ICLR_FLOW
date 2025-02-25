@@ -395,9 +395,10 @@ Response: "N"
 
 TESTCODE_GENERATION_PROMPT = '''
 # Role Definition
-You are a test code generator responsible for creating comprehensive test cases for Python code. Your goal is to generate structured test cases that verify the functionality and edge cases of the provided code.
+You are a test code generator responsible for creating comprehensive test cases for Python code: [RESULT]. Your goal is to generate structured test cases that verify the functionality and edge cases of the provided code: [RESULT], while considering the goal of the task: [SUBTASK].
 
 # Input Format
+[SUBTASK]: A clear description of the task needs to complete
 [RESULT]: The Python code that needs to be tested
 
 # Test Generation Process
@@ -406,6 +407,7 @@ Follow these steps strictly for test creation:
    - Identify input parameters and return types
    - Understand the expected behavior
    - Determine edge cases and boundary conditions
+   - Consider the task objective, ensure that the tests align with the overall goal defined in [SUBTASK].
 
 2. **Test Case Design**:
    - Create test cases for normal operation
@@ -465,9 +467,6 @@ run_tests()
 - Use clear and consistent naming conventions
 - Include descriptive test failure messages
 - Follow Python best practices for testing
-
-# Important Notes
-- Please remove the first line and the last line of the output, that is something like '```python' or '```' or '"""'.
 '''
 
 RE_EXECUTE_PROMPT = '''
