@@ -85,6 +85,7 @@ class Validator:
             {'role': 'user', 'content': user_content_exe}
         ]
         code_str = await self.gpt_client.a_chat_completion(messages_exe, temperature=Config.TEMPERATURE)
+        code_str = code_str.strip('```python').strip('```')
         print('------Generated Test Code is:------')
         print(code_str)
 

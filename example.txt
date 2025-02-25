@@ -1,0 +1,63 @@
+```python
+import tkinter as tk
+import random
+
+# Function to simulate AI's choice
+def ai_select():
+    return random.choice(["Rock", "Paper", "Scissors"])
+
+# Function to determine the winner of the game
+def determine_winner(player, ai):
+    if player == ai:
+        return "Draw!"
+    elif (player == "Rock" and ai == "Scissors") or \
+         (player == "Scissors" and ai == "Paper") or \
+         (player == "Paper" and ai == "Rock"):
+        return "You Win!"
+    else:
+        return "You Lose!"
+
+# Function to handle player's selection
+def player_selection(choice):
+    ai = ai_select()  # AI makes its selection
+    ai_label.config(text=f"AI chose: {ai}")  # Display AI's choice
+    result = determine_winner(choice, ai)  # Determine the outcome
+    result_label.config(text=result)  # Update result display
+
+# Function to reset the game for a new round
+def play_again():
+    ai_label.config(text="")  # Clear AI choice
+    result_label.config(text="")  # Clear result display
+
+# Set up the main application window
+root = tk.Tk()
+root.title("Rock-Paper-Scissors")
+
+# Title Label
+title_label = tk.Label(root, text="Rock-Paper-Scissors", font=("Arial", 24))
+title_label.pack(pady=10)
+
+# Player Choice Buttons
+rock_button = tk.Button(root, text="Rock", command=lambda: player_selection("Rock"))
+paper_button = tk.Button(root, text="Paper", command=lambda: player_selection("Paper"))
+scissors_button = tk.Button(root, text="Scissors", command=lambda: player_selection("Scissors"))
+
+rock_button.pack(pady=5)
+paper_button.pack(pady=5)
+scissors_button.pack(pady=5)
+
+# AI Choice Display
+ai_label = tk.Label(root, text="", font=("Arial", 18))
+ai_label.pack(pady=10)
+
+# Result Display
+result_label = tk.Label(root, text="", font=("Arial", 18))
+result_label.pack(pady=10)
+
+# Play Again Button
+play_again_button = tk.Button(root, text="Play Again", command=play_again)
+play_again_button.pack(pady=20)
+
+# Start the GUI event loop
+root.mainloop()
+```
