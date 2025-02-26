@@ -252,7 +252,7 @@ You are an responsible workflow updater for a project. Using the `current_workfl
 ```
 '''
 
-RUNNER_PROMPT = '''
+EXECUTE_PROMPT = '''
 You are a highly capable task solver. Your job is to produce a complete solution for the given subtask. 
 Follow these instructions exactly:\n
   1. Ensure your output meets all requirements of the subtask.\n
@@ -263,7 +263,7 @@ Follow these instructions exactly:\n
   6. Avoid placeholders or incomplete text.\n\n
 '''
 
-VALIDATION_PROMPT = '''
+TEXT_VALIDATION_PROMPT = '''
 # Role Definition
 You are a rigorous task completion evaluator responsible for determining whether the [subtask result] submitted fully meets the [original subtask requirements]. 
 Your evaluation will determine whether the system needs to re-execute the task.

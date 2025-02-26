@@ -3,24 +3,85 @@ from config import Config
 import prompt
 import sys
 import io
-import asyncio
 
-class PythonValidator:
-    """Executes an individual task asynchronously via GPT."""
-    def __init__(self, overall_task: str, max_itt):
-        self.overall_task = overall_task
-        ## TODO delete gpt_client
+class pythonValidator:
+    def __init__(self):
         self.gpt_client = GPTClient(
             api_key=Config.OPENAI_API_KEY,
             model=Config.GPT_MODEL,
             temperature=Config.TEMPERATURE
         )
-        ## self.system_prompt = 
+        self.generate_test_prompt = prompt.TESTCODE_GENERATION_PROMPT
+        self.check_python_prompt = prompt.IS_PYTHON_PROMPT
         
-    def run(self, data):
-        messages = {}
-        
-        self.gpt_client.chat_completion(messages=messages)
+    async def validate(self, task_obj, result) -> str:
+        '''Generate python test code and execute test code.'''
 
-    def is_python():
-        pass
+        test_code = await self.generate_test_function(task_obj, result)
+        runresult = await self.execute_python_code(test_code)
+
+        print(f'***runresult is: {runresult}***')
+
+        if 'Error executing code:' not in runresult:
+            print('***Python code with no bugs***')
+            return None
+        print('***Python code with bugs***')
+
+        return runresult
+    
+    async def generate_test_function(self, task_obj, result) -> str:
+        '''Generate test function according to task objective and execute result.'''
+
+        user_content = f'''
+            Here is the task object: {task_obj}
+            Here is the result: {result}
+        '''
+
+        messages_exe = [
+            {'role': 'system', 'content': self.generate_test_prompt},
+            {'role': 'user', 'content': user_content}
+        ]
+
+        test_code = await self.gpt_client.a_chat_completion(messages_exe, temperature=Config.TEMPERATURE)
+        test_code = test_code.strip('```python').strip('```')
+
+        return test_code
+    
+    async def execute_python_code(self, test_code): 
+        """Executes a Python script from a string and captures the output."""
+
+        # Redirect stdout
+        origin_stdout = sys.stdout
+        sys.stdout = io.StringIO()
+        exec_globals = {"code": test_code}
+
+        try:
+            # Execute the provided code string
+            exec(test_code, exec_globals)
+        except Exception as e:
+            print(f"Error executing code: {e}")
+        finally:
+            # Capture the output
+            output = sys.stdout.getvalue()
+            sys.stdout = origin_stdout
+        
+        return output
+    
+    async def is_python_code(self, result) -> bool:
+
+        user_content = f'''
+            Here is the result: {result}
+        '''
+        
+        messages = [
+            {'role': 'system', 'content': self.check_python_prompt},
+            {'role': 'user', 'content': user_content}
+        ]
+
+        feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+        
+        if feedback == "N":
+            return False
+        else:
+            return True
+    

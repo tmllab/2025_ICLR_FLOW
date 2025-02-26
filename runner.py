@@ -1,4 +1,4 @@
-from gptClient import GPTClient
+from taskexecuter import taskExecuter
 import logging
 from config import Config
 from workflow import Workflow
@@ -22,64 +22,26 @@ class AsyncRunner:
     """Executes an individual task asynchronously via GPT."""
     def __init__(self, overall_task: str, max_itt):
         self.overall_task = overall_task
-        ## TODO delete gpt_client
-        self.gpt_client = GPTClient(
-            api_key=Config.OPENAI_API_KEY,
-            model=Config.GPT_MODEL,
-            temperature=Config.TEMPERATURE
-        )
         self.max_itt = max_itt
-        ## TODO self.executer = TaskExecuter()
+        self.executer = taskExecuter(overall_task)
         self.validator = Validator()
 
     async def _execute(self, subtask: str, agent_id: str, context: str, next_objective: str) -> str:
-        logger.info(f"Task '{subtask}' started by agent '{agent_id}'.")
-        
-        # System instructions for GPT
-        system_content = prompt.RUNNER_PROMPT
-
-        # print(f'object: {subtask}')
-        # print(f'next: {next_objective}')
-        
-        # User prompt with context and objectives
-        user_content = (
-            f"### Context from Completed Tasks:\n{context}\n\n"
-            f"### Overall Goal:\n{self.overall_task}\n\n"
-            f"### Your Subtask:\n{subtask}\n\n"
-            f"### Subsequent Task Objectives:\n{next_objective}\n\n"
-            "Instructions:\n"
-            "1. Solve only your assigned subtask, referring to the context only if necessary.\n"
-            "2. Ensure your solution aligns with the overall goal and is formatted so that it can be directly used as input for downstream tasks.\n"
-            "3. Do not repeat any previous output verbatim.\n"
-        )
-
-        messages = [
-            {'role': 'system', 'content': system_content},
-            {'role': 'user', 'content': user_content}
-        ]
-        print('------Run _execute ONE TIME------')
-
         i = 0
+
+        # execute here
+        result = await self.executer.execute(subtask, agent_id, context, next_objective)
+        
         while i < self.max_itt:
             if i != 0:
                 feedback = await self.validator.validate(subtask, result)
+
                 if feedback == None:
                     print('---Result is perfect---')
-                    # Break if result is perfect.
                     break
-                print('---has bugs---')
 
-                # Re-execute with feedback
-                user_content = f'''
-                    Here is the subtask: {subtask}
-                    Here is the result: {result}
-                    Here is the validation feedback: {feedback}
-                '''
-                messages = [
-                    {'role': 'system', 'content': prompt.RE_EXECUTE_PROMPT},
-                    {'role': 'user', 'content': user_content}
-                ]
-            result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+                # re-execute here
+                result = await self.executer.re_execute(subtask, agent_id, context, next_objective, feedback)
             i += 1
         
         return result
