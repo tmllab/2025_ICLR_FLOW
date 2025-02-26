@@ -34,17 +34,16 @@ class AsyncRunner:
         result = await self.executer.execute(subtask, agent_id, context, next_objective)
         
         while i < self.max_itt:
-            print('------Go into while loop, i:------')
-            print(i)
-            if i != 0:
-                feedback = await self.validator.validate(subtask, result)
+            print(f'------Go into while loop, i: {i}------')
+            feedback = await self.validator.validate(subtask, result)
 
-                if feedback == None:
-                    print('---Result is perfect---')
-                    break
+            if feedback == None:
+                print('---Result is perfect---')
+                break
 
-                # re-execute here
-                result = await self.executer.re_execute(subtask, agent_id, context, next_objective, feedback)
+            # re-execute here
+            # TODO: paramaters are wrong
+            result = await self.executer.re_execute(subtask, agent_id, context, next_objective, feedback)
             i += 1
         
         return result
