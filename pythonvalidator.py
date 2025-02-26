@@ -1,5 +1,6 @@
 from gptClient import GPTClient
 from config import Config
+import json
 import prompt
 import sys
 import io
@@ -16,9 +17,15 @@ class pythonValidator:
         
     async def validate(self, task_obj, result) -> str:
         '''Generate python test code and execute test code.'''
+        print('------Run pythonValidator.validate()------')
 
         test_code = await self.generate_test_function(task_obj, result)
         runresult = await self.execute_python_code(test_code)
+
+        # Logging execution result for debugging
+        with open('validate_log.json', 'a', encoding='utf-8') as file:
+            file.write('----------\nGOT PYTHON VALIDATION\n----------')
+            json.dump({'task_obj': task_obj, 'result': result, 'testcode': test_code, 'runresult': runresult}, file, indent=4)
 
         print(f'***runresult is: {runresult}***')
 
@@ -31,6 +38,7 @@ class pythonValidator:
     
     async def generate_test_function(self, task_obj, result) -> str:
         '''Generate test function according to task objective and execute result.'''
+        print('------Run pythonValidator.generate_test_function()------')
 
         user_content = f'''
             Here is the task object: {task_obj}
@@ -49,6 +57,7 @@ class pythonValidator:
     
     async def execute_python_code(self, test_code): 
         """Executes a Python script from a string and captures the output."""
+        print('------Run pythonValidator.execute_python_code------')
 
         # Redirect stdout
         origin_stdout = sys.stdout
@@ -68,6 +77,7 @@ class pythonValidator:
         return output
     
     async def is_python_code(self, result) -> bool:
+        print('------Run pythonValidator.is_python_code()------')
 
         user_content = f'''
             Here is the result: {result}
@@ -79,6 +89,7 @@ class pythonValidator:
         ]
 
         feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+        print('------Is Python Code?:------', feedback)
         
         if feedback == "N":
             return False

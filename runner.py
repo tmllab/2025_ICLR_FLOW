@@ -27,12 +27,15 @@ class AsyncRunner:
         self.validator = Validator()
 
     async def _execute(self, subtask: str, agent_id: str, context: str, next_objective: str) -> str:
+        print('------Run _execute------')
         i = 0
 
         # execute here
         result = await self.executer.execute(subtask, agent_id, context, next_objective)
         
         while i < self.max_itt:
+            print('------Go into while loop, i:------')
+            print(i)
             if i != 0:
                 feedback = await self.validator.validate(subtask, result)
 
@@ -47,6 +50,7 @@ class AsyncRunner:
         return result
 
     async def execute(self, workflow: Workflow, task_id: str) -> str:
+        print('------Run execute(not _execute)------')
         """Wraps task execution logic, incorporating context and downstream objectives."""
         if task_id not in workflow.tasks:
             logger.error(f"Task '{task_id}' not found in workflow.")

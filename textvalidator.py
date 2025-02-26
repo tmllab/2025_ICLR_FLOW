@@ -1,5 +1,6 @@
 from gptClient import GPTClient
 from config import Config
+import json
 import prompt
 
 class textValidator:
@@ -12,6 +13,7 @@ class textValidator:
         self.text_validation_prompt = prompt.TEXT_VALIDATION_PROMPT
 
     async def validate(self, task_obj, result):
+        print('------Run textValidator.validate()------')
 
         user_content = f'''
             Here is the subtask: {task_obj}
@@ -24,6 +26,10 @@ class textValidator:
         ]
 
         feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+        with open('validate_log.json', 'a', encoding='utf-8') as file:
+            file.write('----------\nGOT TEXT VALIDATION\n----------')
+            json.dump({'task_obj': task_obj, 'result': result, 'feedback': feedback}, file, indent=4)
+
         
         if feedback == "NONE":
             return None

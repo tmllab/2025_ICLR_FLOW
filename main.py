@@ -34,12 +34,20 @@ def main():
         The UI should display the player's choice, the AI's choice, and the game result (win, lose, or draw). 
         Provide an interactive and user-friendly experience.
         '''
-
-
+    # overall_task: str = '''Develop a Tetris game with a graphical user interface (GUI) in Python. 
+    #     The game should allow players to manipulate falling tetrominoes by rotating and moving them horizontally. 
+    #     The objective is to create complete horizontal lines, which will then disappear, earning points for the player. 
+    #     The UI should display the current score, the next tetromino, and provide an engaging and user-friendly experience.
+    #     The program should be able to run without any additional files.
+    #     '''
+    
+    # Record the whole validation process in a new overall task, following the previous one
+    with open('validate_log.json', 'a', encoding='utf-8') as file:
+            file.write(f'\n**********\nHere is the whole validation process of a new overall task:\n{overall_task}\n**********\n')
 
     start_time = time.time()
 
-    manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = 3, n_candidate_graphs=10,workflow=None,max_itt=1)
+    manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = 3, n_candidate_graphs=10,workflow=None,max_itt=2)
     asyncio.run(manager.run_async())
 
     elapsed_time = time.time() - start_time

@@ -1,0 +1,10 @@
+更新：
+1: main.py上调了max_itt=2以进入一轮验证过程，max_itt=1没法测试验证效果，增加俄罗斯方块的overall_task，增加validate_log.json中每次新的总体任务的分界线
+2: pythonvalidator.py增加记录验证过程的代码，存储文件为validate_log.json
+3: textvalidator.py增加记录验证过程的代码，存储文件也为validate_log.json
+4: 添加了许多用于检验实际验证过程的print()，后面不需要可以删掉
+5: validator.py的line12应该是要加await才合理吧
+
+问题：
+1: validator.py的line12如果不加await就会一直执行pythonvalidation，如果加了await就会一直执行textvalidation，原因尚未查清，没有解决
+2: 时常报错：[ERROR] Task task0 encountered error: local variable 'result' referenced before assignment，task1234等都会出现，尚未解决
