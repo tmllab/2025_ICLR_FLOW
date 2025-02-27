@@ -128,6 +128,7 @@ class Flow:
 
             # Execute task with the runner
             result = await self.runner.execute(self.workflow, task_id)
+            ## TODO move this part to  runner
             task_obj.data = result
             task_obj.status = 'completed'
             self.completed_tasks[task_id] = task_obj

@@ -29,23 +29,32 @@ class AsyncRunner:
     async def _execute(self, subtask: str, agent_id: str, context: str, next_objective: str) -> str:
         print('------Run _execute------')
         i = 0
-
+        status = "pending"
         # execute here
-        result = await self.executer.execute(subtask, agent_id, context, next_objective)
-        
+
         while i < self.max_itt:
             print(f'------Go into while loop, i: {i}------')
-            feedback = await self.validator.validate(subtask, result)
+            if i == 0:
+                result = await self.executer.execute(subtask, agent_id, context, next_objective)
+            else:
+                # re-execute here
+                # TODO: paramaters are wrong
+                result = await self.executer.re_execute(subtask, agent_id, context, next_objective, feedback)
 
-            if feedback == None:
+            feedback, new_status = await self.validator.validate(subtask, result)
+            ##TODO data
+            ##TODO status 
+            status = new_status
+            if status == "complete" :
                 print('---Result is perfect---')
+              
                 break
 
-            # re-execute here
-            # TODO: paramaters are wrong
-            result = await self.executer.re_execute(subtask, agent_id, context, next_objective, feedback)
+ 
+            
             i += 1
-        
+        ##TODO update task status here
+        #  
         return result
 
     async def execute(self, workflow: Workflow, task_id: str) -> str:

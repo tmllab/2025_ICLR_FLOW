@@ -42,6 +42,7 @@ class WorkflowManager:
         Refines the current workflow based on completed tasks.
         """
         logger.info("Refining workflow...")
+        # TODO the data for updating should include more information, e.g., tasks status and test info
         current_data = {tid: task.__dict__ for tid, task in self.workflow.tasks.items()}
         new_workflow_data = await self.optimize_workflow(current_data)
 
