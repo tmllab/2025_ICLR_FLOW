@@ -32,7 +32,7 @@ class textValidator:
 
         
         if feedback == "NONE":
-            return None
+            return None, 'completed'
         else:
-            return feedback
+            return feedback, 'failed'
     

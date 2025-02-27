@@ -126,11 +126,12 @@ class Flow:
             # Build context from successfully completed (status == 'completed') dependencies
 
 
-            # Execute task with the runner
+            # Execute task with the runner and set status = 'completed' or 'failed'
             result = await self.runner.execute(self.workflow, task_id)
-            ## TODO move this part to  runner
-            task_obj.data = result
-            task_obj.status = 'completed'
+            ## TODO move this part to runner
+            # task_obj.data = result
+            # task_obj.status = 'completed'
+
             self.completed_tasks[task_id] = task_obj
 
             logger.info(f"Task {task_id} completed with result: {result}")

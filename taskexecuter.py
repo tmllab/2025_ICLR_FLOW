@@ -54,7 +54,7 @@ class taskExecuter:
 
         return result
 
-    async def re_execute(self, subtask: str, agent_id: str, context: str, next_objective: str, feedback: str):
+    async def re_execute(self, subtask: str, agent_id: str, context: str, next_objective: str, result: str, feedback: str):
         '''Re-execute the task following the feedback and result'''
 
         user_content = f'''
@@ -69,4 +69,6 @@ class taskExecuter:
 
         result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
 
+        if result:
+            print('------Re-execute completed------')
         return result

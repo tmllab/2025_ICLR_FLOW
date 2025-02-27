@@ -31,10 +31,10 @@ class pythonValidator:
 
         if 'Error executing code:' not in runresult:
             print('***Python code with no bugs***')
-            return None
-        print('***Python code with bugs***')
-
-        return runresult
+            return None, 'completed'
+        else:
+            print('***Python code with bugs***')
+            return runresult, 'failed'
     
     async def generate_test_function(self, task_obj, result) -> str:
         '''Generate test function according to task objective and execute result.'''

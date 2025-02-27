@@ -47,7 +47,7 @@ def main():
 
     start_time = time.time()
 
-    manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = 3, n_candidate_graphs=10,workflow=None,max_itt=2)
+    manager = Flow(overall_task = overall_task, enable_refine=False, refine_threhold = 3, n_candidate_graphs=3,workflow=None,max_itt=2)
     asyncio.run(manager.run_async())
 
     elapsed_time = time.time() - start_time

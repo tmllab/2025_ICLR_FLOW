@@ -31,6 +31,12 @@ class Task:
             'remaining_dependencies': self.remaining_dependencies,
             'agent': self.agent
         }
+    
+    def set_status(self, status: str):
+        self.status = status
+
+    def set_data(self, data: str):
+        self.data = data
 
 
 
