@@ -144,7 +144,8 @@ class WorkflowManager:
                 'next': task_info.get('next', []),
                 'prev': task_info.get('prev', []),
                 'status': task_info.get('status', ''),
-                'data': task_info.get('data', '')
+                # TODO: justify here
+                # 'data': task_info.get('data', '')
             }
             for task_id, task_info in current_workflow.items()
         }

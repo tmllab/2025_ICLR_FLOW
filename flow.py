@@ -125,12 +125,8 @@ class Flow:
         try:
             # Build context from successfully completed (status == 'completed') dependencies
 
-
             # Execute task with the runner and set status = 'completed' or 'failed'
             result = await self.runner.execute(self.workflow, task_id)
-            ## TODO move this part to runner
-            # task_obj.data = result
-            # task_obj.status = 'completed'
 
             self.completed_tasks[task_id] = task_obj
 
@@ -207,7 +203,8 @@ class Flow:
 
         logger.info("All tasks completed. Final Task Results:")
         for task_id, task_obj in sorted(self.workflow.tasks.items()):
-            logger.info(f" - {task_id}: {task_obj.data}")
+            result, feedback = task_obj.get_latest_history()
+            logger.info(f" - {task_id}: {result}")
 
 
 

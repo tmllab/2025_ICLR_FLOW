@@ -57,8 +57,8 @@ def main():
     workflow_data = {
         tid: task.__dict__ for tid, task in manager.workflow.tasks.items()
     }
-    with open('result.json', 'w', encoding='utf-8') as file:
-        json.dump(workflow_data, file, indent=4)
+    # with open('result.json', 'w', encoding='utf-8') as file:
+    #     json.dump(workflow_data, file, indent=4)
 
     summary = Summary()
     # Generate and save a summary of the workflow results

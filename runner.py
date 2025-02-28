@@ -42,6 +42,7 @@ class AsyncRunner:
                 result = await self.executer.re_execute(subtask, agent_id, context, next_objective, result, feedback)
 
             feedback, new_status = await self.validator.validate(subtask, result)
+            task_obj.save_history(result, feedback)
             ##TODO status 
             # shoud be this: task_obj.set_status(new_status)
             task_obj.set_status('completed')
@@ -72,6 +73,6 @@ class AsyncRunner:
         # Log a brief snippet of the context (first 100 characters) for clarity.
         logger.info(f"Executing task '{task_objective}' with context: {context[:100]}...")
         result = await self._execute(task_obj, task_objective, agent_id, context, next_objective)
-        ##TODO data
-        task_obj.set_data(result)
+        ##TODO data, delete this?
+        # task_obj.set_history(result)
         return result

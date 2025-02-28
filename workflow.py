@@ -2,18 +2,20 @@ from typing import Dict, Any, List
 import networkx as nx
 from collections import deque, defaultdict
 import json
+from history import History
 
 class Task:
     """Data structure representing a workflow task."""
     def __init__(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
-                 status: str = 'pending', data: str = '', agent: str = ''):
+                 status: str = 'pending', history: History = None, agent: str = ''):
         self.id = id
         self.objective = objective
         self.agent_id = agent_id
         self.next = next
         self.prev = prev
         self.status = status
-        self.data = data
+        # self.data = data
+        self.history = history
         self.remaining_dependencies = len(self.prev)
         self.agent = agent
         ##TODO self.history = History()
@@ -27,7 +29,7 @@ class Task:
             'next': self.next,
             'prev': self.prev,
             'status': self.status,
-            'data': self.data,
+            'history': str(self.history),
             'remaining_dependencies': self.remaining_dependencies,
             'agent': self.agent
         }
@@ -35,8 +37,15 @@ class Task:
     def set_status(self, status: str):
         self.status = status
 
-    def set_data(self, data: str):
-        self.data = data
+    def save_history(self, data: str, feedback = ''):
+        self.history.save(data, feedback)
+
+    def get_history(self):
+        return self.history.get_history()
+    
+    def get_latest_history(self):
+        result, feedback = self.history.get_latest_history()
+        return result, feedback
 
 
 
@@ -73,7 +82,8 @@ class Workflow:
             if prev_id in self.tasks and self.tasks[prev_id].status == 'completed':
                 prev_task = self.tasks[prev_id]
                 objective = prev_task.objective
-                result = prev_task.data if prev_task.data else 'None'
+                # result = prev_task.data if prev_task.data else 'None'
+                result, feedback = prev_task.get_latest_history() if prev_task.get_latest_history() else 'None'
                 context_lines.append(
                     f"Task {prev_id}:\n"
                     f"  Objective: {objective}\n"
@@ -129,7 +139,7 @@ class Workflow:
         return ready_to_run
 
     def add_task(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
-                 status: str = 'pending', data: str = '', remaining_dependencies: int = 0,
+                 status: str = 'pending', history: History = None, remaining_dependencies: int = 0,
                  agent: str = '', compute_dependencies: bool = True):
         """
         Add a new task to the workflow and update dependency links in related tasks.
@@ -154,7 +164,8 @@ class Workflow:
             # In merge scenarios, do not compute dependencies yet.
             remaining_dependencies = 0
         
-        new_task = Task(id, objective, agent_id, next, prev, status, data, remaining_dependencies, agent)
+        # new_task = Task(id, objective, agent_id, next, prev, status, data, remaining_dependencies, agent)
+        new_task = Task(id, objective, agent_id, next, prev, status, history, remaining_dependencies, agent)
         self.tasks[id] = new_task
 
         # Update related tasks: add this task id to each parent's `next` list.
@@ -171,7 +182,7 @@ class Workflow:
 
 
     def edit_task(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
-                  status: str = 'pending', data: str = '', remaining_dependencies: int = 0, agent: str = ''):
+                  status: str = 'pending', history: History = None, remaining_dependencies: int = 0, agent: str = ''):
         """
         Edit an existing task and update dependency links.
         Raises a ValueError if the task does not exist.
@@ -192,7 +203,8 @@ class Workflow:
         task.next = next
         task.prev = prev
         task.status = status
-        task.data = data
+        # task.data = data
+        task.history = history
         task.agent = agent
         if remaining_dependencies == 0:
             task.remaining_dependencies = sum(
@@ -274,7 +286,8 @@ class Workflow:
                         next=new_task_data.get('next', []),
                         prev=new_task_data.get('prev', []),
                         status=new_status,
-                        data='',
+                        # data='',
+                        history=History(),
                         remaining_dependencies=0,
                         agent=new_task_data.get('agent', '')
                     )
@@ -288,7 +301,8 @@ class Workflow:
                     next=new_task_data.get('next', []),
                     prev=new_task_data.get('prev', []),
                     status='pending',
-                    data='',
+                    # data='',
+                    history=History(),
                     remaining_dependencies=0,
                     agent=new_task_data.get('agent', ''),
                     compute_dependencies=False
@@ -313,7 +327,8 @@ class Workflow:
                     for parent_id in task.prev:
                         if parent_id in self.tasks and self.tasks[parent_id].status != 'completed':
                             task.status = 'pending'
-                            task.data = ''
+                            # task.data = ''
+                            task.history = History()
                             changed = True
                             break
 

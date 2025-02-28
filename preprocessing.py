@@ -1,6 +1,7 @@
 import json
 from collections import defaultdict
 from workflow import Task, Workflow
+from history import History
 
 
 # read json
@@ -47,7 +48,8 @@ def process_context(context: str):
             'next': [f'task{key}' for key, value in dependencies.items() if i in value],
             'prev': [f'task{elem}' for elem in dependencies[i]],
             'status': 'pending',
-            'data': '',
+            # 'data': '',
+            'history': History(),
             'agent': agents[assigned_agent]['role']
         }
         tasks[f'task{i}'] = Task(**task_info)

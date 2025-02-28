@@ -2,10 +2,13 @@ class History:
     def __init__(self):
         self.data = []
 
-    def store(self, result: str, feedback: str = ''):
+    def save(self, result: str, feedback: str = ''):
         self.data.append({'result': result, 'feedback': feedback})
 
-    def get_history(self, idx=None):
+    def get_history(self):
+        return self.data
+
+    def get_history_index(self, idx = None):
         if not self.data:
             return None
 
@@ -13,14 +16,18 @@ class History:
             return self.data
         else:
             if isinstance(idx, int) and 0 <= idx < len(self.data):
-                return self.data[idx]
+                return self.data[idx]['result'], self.data[idx]['feedback']
             else:
                 return None
         
-    def get_latest(self):
+    def get_latest_history(self):
         if not self.data:
             return None
-        return self.data[-1]
+        return self.data[-1]['result'], self.data[-1]['feedback']
 
     def __str__(self):
         return f"History={self.data}"
+    
+    def __dict__(self):
+        return {'history': self.data}
+        
