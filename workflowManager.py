@@ -34,6 +34,7 @@ class WorkflowManager:
         )
         self.objective = objective
         self.workflow: Workflow | None = None
+        self.system_prompt = prompt.SYSTEM_PROMPT
 
 
 
@@ -52,9 +53,11 @@ class WorkflowManager:
 
     def get_workflow(self) -> Workflow:
 
+        user_content = f'the objective need to be achieved is: {self.objective}'
+
         messages = [
-            {'role': 'system', 'content': prompt.SYSTEM_PROMPT},
-            {'role': 'user', 'content': "the objective need to be achieved is: "+ self.objective}
+            {'role': 'system', 'content': self.system_prompt},
+            {'role': 'user', 'content': user_content}
         ]
         response = self.gpt_client.chat_completion(messages)
         logger.info(f"GPT Response: {response}")
