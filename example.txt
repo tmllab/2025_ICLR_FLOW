@@ -1,0 +1,141 @@
+```python
+import pygame
+import random
+
+# Constants
+SCREEN_WIDTH = 300
+SCREEN_HEIGHT = 600
+BLOCK_SIZE = 30
+GRID_WIDTH = SCREEN_WIDTH // BLOCK_SIZE
+GRID_HEIGHT = SCREEN_HEIGHT // BLOCK_SIZE
+
+# Colors
+COLORS = [
+    (0, 0, 0),  # Black
+    (255, 0, 0),  # Red
+    (0, 255, 0),  # Green
+    (0, 0, 255),  # Blue
+    (255, 255, 0),  # Yellow
+    (255, 165, 0),  # Orange
+    (128, 0, 128),  # Purple
+]
+
+# Tetromino shapes
+SHAPES = [
+    [[1, 1, 1, 1]],  # I
+    [[1, 1, 1], [0, 1, 0]],  # T
+    [[1, 1], [1, 1]],  # O
+    [[0, 1, 1], [1, 1, 0]],  # S
+    [[1, 1, 0], [0, 1, 1]],  # Z
+    [[1, 0, 0], [1, 1, 1]],  # L
+    [[0, 0, 1], [1, 1, 1]],  # J
+]
+
+class Tetromino:
+    def __init__(self, shape):
+        self.shape = shape
+        self.color = random.choice(COLORS[1:])
+        self.x = GRID_WIDTH // 2 - len(shape[0]) // 2
+        self.y = 0
+
+    def rotate(self):
+        self.shape = [list(row) for row in zip(*self.shape[::-1])]
+
+class TetrisGame:
+    def __init__(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        pygame.display.set_caption("Tetris")
+        self.clock = pygame.time.Clock()
+        self.grid = [[0] * GRID_WIDTH for _ in range(GRID_HEIGHT)]
+        self.current_tetromino = self.new_tetromino()
+        self.score = 0
+
+    def new_tetromino(self):
+        shape = random.choice(SHAPES)
+        return Tetromino(shape)
+
+    def draw_grid(self):
+        for y in range(GRID_HEIGHT):
+            for x in range(GRID_WIDTH):
+                color = COLORS[self.grid[y][x]]
+                pygame.draw.rect(self.screen, color, (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE), 0)
+
+    def draw_tetromino(self):
+        for y, row in enumerate(self.current_tetromino.shape):
+            for x, cell in enumerate(row):
+                if cell:
+                    pygame.draw.rect(self.screen, self.current_tetromino.color,
+                                     ((self.current_tetromino.x + x) * BLOCK_SIZE,
+                                      (self.current_tetromino.y + y) * BLOCK_SIZE,
+                                      BLOCK_SIZE, BLOCK_SIZE), 0)
+
+    def check_collision(self):
+        for y, row in enumerate(self.current_tetromino.shape):
+            for x, cell in enumerate(row):
+                if cell:
+                    grid_x = self.current_tetromino.x + x
+                    grid_y = self.current_tetromino.y + y
+                    if grid_x < 0 or grid_x >= GRID_WIDTH or grid_y >= GRID_HEIGHT or self.grid[grid_y][grid_x]:
+                        return True
+        return False
+
+    def merge_tetromino(self):
+        for y, row in enumerate(self.current_tetromino.shape):
+            for x, cell in enumerate(row):
+                if cell:
+                    self.grid[self.current_tetromino.y + y][self.current_tetromino.x + x] = COLORS.index(self.current_tetromino.color)
+
+    def clear_lines(self):
+        lines_to_clear = [i for i, row in enumerate(self.grid) if all(cell for cell in row)]
+        for i in lines_to_clear:
+            del self.grid[i]
+            self.grid.insert(0, [0] * GRID_WIDTH)
+            self.score += 10
+
+    def run(self):
+        while True:
+            self.screen.fill((0, 0, 0))
+            self.draw_grid()
+            self.draw_tetromino()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    return
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        self.current_tetromino.x -= 1
+                        if self.check_collision():
+                            self.current_tetromino.x += 1
+                    elif event.key == pygame.K_RIGHT:
+                        self.current_tetromino.x += 1
+                        if self.check_collision():
+                            self.current_tetromino.x -= 1
+                    elif event.key == pygame.K_DOWN:
+                        self.current_tetromino.y += 1
+                        if self.check_collision():
+                            self.current_tetromino.y -= 1
+                    elif event.key == pygame.K_UP:
+                        self.current_tetromino.rotate()
+                        if self.check_collision():
+                            self.current_tetromino.rotate()  # Rotate back
+
+            self.current_tetromino.y += 1
+            if self.check_collision():
+                self.current_tetromino.y -= 1
+                self.merge_tetromino()
+                self.clear_lines()
+                self.current_tetromino = self.new_tetromino()
+                if self.check_collision():
+                    print("Game Over")
+                    pygame.quit()
+                    return
+
+            pygame.display.flip()
+            self.clock.tick(10)
+
+if __name__ == "__main__":
+    game = TetrisGame()
+    game.run()
+```

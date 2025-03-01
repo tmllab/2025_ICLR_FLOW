@@ -455,6 +455,7 @@ def run_tests():
 # Execute our tests
 run_tests()
 """
+Please output the code only without description and explanation
 
 # Test Case Requirements
 - Include at least 3 normal operation tests
@@ -519,4 +520,32 @@ def weighted_avg(values, weights):
         raise ValueError("Length mismatch")
     total = sum(v * w for v, w in zip(values, weights))
     return total / sum(weights)
+'''
+
+
+SUMMARY_PROMPT = '''
+# Role Definition
+You are a task summarizer responsible for condensing the workflow for a specified task into a clear and concise summary. Your objective is to extract the essential elements of the workflow and present them in a structured format that highlights the key components and their relationships.
+
+# Input Format
+[TASK]: The task description
+[CHATHISTORY]: the workflow of the task
+
+# Summary Instructions
+1. Review and integrate outputs from all subtask in the workflow.
+2. Ensure the final output is comprehensive and not based solely on the result of the last subtask.
+3. Focus on producing the actual deliverable:
+    If the task specifies Python code, output a Python script.
+    If it asks for a LaTeX file, provide the full LaTeX document.
+    Avoid just summarizing the steps or describing the results - your primary goal is to create the actual output.
+
+# Output Format
+The generated summary should be the required output format, depending on the [TASK], this could be:
+    Python code: Generate a .py file if the task is programming-related.
+    LaTeX file: Create a .tex file, such as a Beamer presentation, for documentation or slides.
+    Other formats as specified in the task.
+
+# Keypoints
+Always generate the output in the format specified by the task.
+Ensure the final result is complete, well-structured, and ready to use.
 '''

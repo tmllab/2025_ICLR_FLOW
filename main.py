@@ -29,17 +29,17 @@ def main():
     # Ensure UTF-8 encoding for stdout (optional, depending on environment)
     sys.stdout.reconfigure(encoding='utf-8')
 
-    overall_task: str = '''Develop a Rock-Paper-Scissors game with a graphical user interface (GUI) in Python. 
-        The game should allow a player to compete against a naive AI that randomly selects Rock, Paper, or Scissors. 
-        The UI should display the player's choice, the AI's choice, and the game result (win, lose, or draw). 
-        Provide an interactive and user-friendly experience.
-        '''
-    # overall_task: str = '''Develop a Tetris game with a graphical user interface (GUI) in Python. 
-    #     The game should allow players to manipulate falling tetrominoes by rotating and moving them horizontally. 
-    #     The objective is to create complete horizontal lines, which will then disappear, earning points for the player. 
-    #     The UI should display the current score, the next tetromino, and provide an engaging and user-friendly experience.
-    #     The program should be able to run without any additional files.
+    # overall_task: str = '''Develop a Rock-Paper-Scissors game with a graphical user interface (GUI) in Python. 
+    #     The game should allow a player to compete against a naive AI that randomly selects Rock, Paper, or Scissors. 
+    #     The UI should display the player's choice, the AI's choice, and the game result (win, lose, or draw). 
+    #     Provide an interactive and user-friendly experience.
     #     '''
+    overall_task: str = '''Develop a Tetris game with a graphical user interface (GUI) in Python. 
+        The game should allow players to manipulate falling tetrominoes by rotating and moving them horizontally. 
+        The objective is to create complete horizontal lines, which will then disappear, earning points for the player. 
+        The UI should display the current score, the next tetromino, and provide an engaging and user-friendly experience.
+        The program should be able to run without any additional files.
+        '''
     
     # Record the whole validation process in a new overall task, following the previous one
     with open('validate_log.json', 'a', encoding='utf-8') as file:
