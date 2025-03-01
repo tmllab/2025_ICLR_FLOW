@@ -38,14 +38,11 @@ class AsyncRunner:
                 result = await self.executer.execute(subtask, agent_id, context, next_objective)
             else:
                 # re-execute here
-                # TODO: paramaters are wrong
                 result = await self.executer.re_execute(subtask, agent_id, context, next_objective, result, feedback)
 
             feedback, new_status = await self.validator.validate(subtask, result)
             task_obj.save_history(result, feedback)
-            ##TODO status 
-            # shoud be this: task_obj.set_status(new_status)
-            task_obj.set_status('completed')
+            task_obj.set_status(new_status)
             if new_status == 'completed' :
                 print('---Result is perfect---')
                 return result
