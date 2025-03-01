@@ -1,3 +1,6 @@
 *.pyc
 *.json
 
+*.txt
+*.html
+*.css

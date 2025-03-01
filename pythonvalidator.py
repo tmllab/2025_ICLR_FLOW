@@ -76,9 +76,10 @@ class pythonValidator:
         
         return output
     
-    async def is_python_code(self, result) -> bool:
+    async def is_python_code(self, result,task_obj) -> bool:
         print('------Run pythonValidator.is_python_code()------')
-
+        ##TODO check if the result need to be runned based on task_obj, 
+        # it is possible that the code is just for explaination  
         user_content = f'''
             Here is the result: {result}
         '''
@@ -87,7 +88,8 @@ class pythonValidator:
             {'role': 'system', 'content': self.check_python_prompt},
             {'role': 'user', 'content': user_content}
         ]
-
+        print(user_content)
+        
         feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
         print('------Is Python Code?:------', feedback)
         

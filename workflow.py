@@ -15,10 +15,13 @@ class Task:
         self.prev = prev
         self.status = status
         # self.data = data
-        self.history = history
+        if history == None:
+            self.history = History()
+        else:
+            self.history = history
         self.remaining_dependencies = len(self.prev)
         self.agent = agent
-        ##TODO self.history = History()
+  
 
     def to_dict(self) -> Dict[str, Any]:
         """Converts the Task object to a dictionary for JSON serialization."""
@@ -119,7 +122,7 @@ class Workflow:
         else:
             return "No downstream objectives available."
     
-    def handle_task_completion(self, task_id: str) -> List[str]:
+    def handle_task_done(self, task_id: str) -> List[str]:
         """
         Update the downstream tasks of a just-completed task.
         Decrements the remaining_dependencies count for each downstream task.
@@ -128,15 +131,15 @@ class Workflow:
         if task_id not in self.tasks:
             return []
         task_obj = self.tasks[task_id]
-        ready_to_run = []
-        for next_id in task_obj.next:
-            if next_id in self.tasks:
-                downstream_task = self.tasks[next_id]
-                if downstream_task.status == 'pending':
-                    downstream_task.remaining_dependencies -= 1
-                    if downstream_task.remaining_dependencies <= 0:
-                        ready_to_run.append(next_id)
-        return ready_to_run
+        if task_obj.status == "completed":
+            for next_id in task_obj.next:
+                if next_id in self.tasks:
+                    downstream_task = self.tasks[next_id]
+                    if downstream_task.remaining_dependencies > 0:
+                        downstream_task.remaining_dependencies -= 1
+    
+            
+
 
     def add_task(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
                  status: str = 'pending', history: History = None, remaining_dependencies: int = 0,
@@ -164,8 +167,8 @@ class Workflow:
             # In merge scenarios, do not compute dependencies yet.
             remaining_dependencies = 0
         
-        # new_task = Task(id, objective, agent_id, next, prev, status, data, remaining_dependencies, agent)
-        new_task = Task(id, objective, agent_id, next, prev, status, history, remaining_dependencies, agent)
+      
+        new_task = Task(id, objective, agent_id, next, prev, status, history, agent)
         self.tasks[id] = new_task
 
         # Update related tasks: add this task id to each parent's `next` list.
@@ -384,9 +387,9 @@ class Workflow:
         """Determine if all tasks have been completed."""
         return all(task.status == 'completed' for task in self.tasks.values())
 
-    def get_pending_tasks(self) -> List[Task]:
+    def get_runable_tasks(self) -> List[Task]:
         """Return all tasks that are pending and ready to run."""
-        return [task for task in self.tasks.values() if task.status == 'pending' and task.remaining_dependencies == 0]
+        return [task for task in self.tasks.values() if (task.status == 'pending' or  task.status == 'failed') and task.remaining_dependencies == 0]
 
     def to_dict(self) -> Dict[str, Any]:
         """Converts the Workflow object to a dictionary for JSON serialization."""

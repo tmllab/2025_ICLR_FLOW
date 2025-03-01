@@ -35,7 +35,7 @@ class Flow:
         active_tasks (Dict[str, asyncio.Task]): Maps task IDs to active asyncio tasks.
         completed_tasks (Dict[str, asyncio.Task]): Maps task IDs to completed tasks.
         redefining (bool): Whether the workflow is currently being redefined.
-        task_completion_counter (int): Counts how many tasks have completed since last workflow refinement.
+        task_done_counter (int): Counts how many tasks have completed since last workflow refinement.
         can_schedule_tasks (asyncio.Event): Controls if scheduling is allowed.
         schedule_lock (asyncio.Lock): Prevents race conditions in scheduling.
         refine_threhold (int): how many tasks have completed to tragger the workflow refinement.
@@ -49,9 +49,8 @@ class Flow:
         self.runner = AsyncRunner(overall_task, max_itt)
         self.optimizer = WorkflowManager(overall_task)
         self.active_tasks: Dict[str, asyncio.Task] = {}
-        self.completed_tasks: Dict[str, Any] = {}
         self.redefining = False
-        self.task_completion_counter = 0
+        self.task_done_counter = 0
         if workflow is not None:
             self.workflow = workflow
         else:
@@ -75,9 +74,9 @@ class Flow:
         if not self.can_schedule_tasks.is_set():
             return
 
-        for task in self.workflow.get_pending_tasks():
+        for task in self.workflow.get_runable_tasks():     
             await self.schedule_task(task.id)
-
+      
     async def schedule_task(self, task_id: str):
         """
         Schedule a single task for execution if it's not already active.
@@ -118,8 +117,8 @@ class Flow:
         """
         task_obj = self.workflow.tasks[task_id]
 
-        if task_obj.status != 'pending':
-            logger.info(f"Task {task_id} not pending; skipping.")
+        if task_obj.status == 'completed':
+            logger.info(f"Task {task_id} completed; skipping.")
             return
 
         try:
@@ -128,9 +127,6 @@ class Flow:
             # Execute task with the runner and set status = 'completed' or 'failed'
             result = await self.runner.execute(self.workflow, task_id)
 
-            self.completed_tasks[task_id] = task_obj
-
-            logger.info(f"Task {task_id} completed with result: {result}")
 
             # Logging execution result for debugging
             with open('execute_log.json', 'a', encoding='utf-8') as file:
@@ -163,18 +159,18 @@ class Flow:
         Increments counters, updates downstream tasks, and triggers workflow refinement if needed.
         """
         self.active_tasks.pop(task_id, None)
-        self.task_completion_counter += 1
+        self.task_done_counter += 1
         logger.info(
-            f"Task {task_id} done. Total completed so far: {self.task_completion_counter}"
+            f"Task {task_id} done. Total completed so far: {self.task_done_counter}"
         )
-        self.workflow.handle_task_completion(task_id)
+        self.workflow.handle_task_done(task_id)
 
 
         # Trigger workflow refinement when threshold is reached
-        print(self.task_completion_counter , self.refine_threhold )
-        if self.task_completion_counter >= self.refine_threhold and not self.redefining:
+        print(self.task_done_counter , self.refine_threhold )
+        if self.task_done_counter >= self.refine_threhold and not self.redefining:
             logger.info(f"Task {task_id} triggers workflow refinement.")
-            self.task_completion_counter = 0
+            self.task_done_counter = 0
             self.redefining = True
             self.can_schedule_tasks.clear()
 

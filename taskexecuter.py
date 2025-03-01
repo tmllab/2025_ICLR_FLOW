@@ -54,17 +54,25 @@ class taskExecuter:
 
         return result
 
-    async def re_execute(self, subtask: str, agent_id: str, context: str, next_objective: str, result: str, feedback: str):
+    async def re_execute(self, subtask: str, agent_id: str, context: str, next_objective: str, result: str, feedback: str, history:str):
         '''Re-execute the task following the feedback and result'''
 
-        user_content = f'''
-            Here is the subtask: {subtask}
-            Here is the agent_id: {agent_id}
-            Here is the context: {context}
-            Here is the next_objective: {next_objective}
-            Here is the result: {result}
-            Here is the feedback: {feedback}
-        '''
+
+        # User prompt with context and objectives
+        user_content = (
+            f"### Context from Completed Tasks:\n{context}\n\n"
+            f"### The Overall Goal:\n{self.overall_task}\n\n"
+            f"### Subsequent subtask objectives:\n{next_objective}\n\n"
+            f"### The subtask requirement:\n{subtask}\n\n"
+            f"### Here are history of results and feedbacks might be useful, consider to address the important one: \n{history}\n\n"
+            f"### You need to further refine the lastest subtask results in the history based on all history"
+            "Instructions:\n"
+            "1. Refine only the subtask results, do not jusitfy your change.\n"
+            "2. Ensure your solution aligns with the overall goal and is formatted so that it can be directly used as input for downstream tasks.\n"
+            "3. Do not repeat any previous output verbatim.\n"
+        )
+
+
         messages = [
             {'role': 'system', 'content': self.re_execute_prompt},
             {'role': 'user', 'content': user_content}

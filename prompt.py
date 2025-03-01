@@ -181,70 +181,14 @@ Response: "NONE"
 '''
 
 IS_PYTHON_PROMPT = f'''
-# Role
-You are a Python code analyzer responsible for determining whether the submitted [result] contains executable Python code.
 
-# Context
-You will get the input:
-[result]: The text content that needs to be analyzed
+You need to check if the content contains a python code block. 
 
-# Objective and steps
-Your objective is to identify any valid, executable Python code segments within the content.
-Follow these steps strictly:
-1. Code Identification: 
-   - Locate potential Python code segments
-   - Distinguish between code and non-code content
-   - Identify complete, executable statements
-2. Executable Elements Check:
-   - Complete function definitions
-   - Class definitions
-   - Standalone executable statements
-   - Valid import statements
-   - Complete code blocks
-3. Basic Executability Verification:
-   - Valid syntax structure
-   - Complete logical blocks
-   - Proper indentation
-   - Required dependencies
-   - No syntax errors
-
-Evaluation Criteria:
-  Contains Executable Python Code: 
-    - Has complete, syntactically correct code blocks
-    - Contains actual Python statements/expressions
-    - Could be executed in a Python environment
-    Examples:
-      ```python
-      x = 1 + 2
-      print("Hello")
-      
-      def func():
-          return True
-      
-      class MyClass:
-          def __init__(self):
-              pass
-      ```
-  Not Executable Python Code:
-    - Pseudo-code or code-like text
-    - Incomplete code fragments
-    - Pure documentation or comments
-    - Natural language descriptions
-    Examples:
-      ```
-      function do something
-      print hello world
-      if x equals 5 then
-      ```
-
-# Audience
-Your judgement will be used for the later python code validation process.
 
 # Response Format
-- Respond ONLY with "Y" if executable Python code is found
-- Respond ONLY with "N" if no executable Python code is present
-- Example:
-{IS_PYTHON_EXAMPLE}
+- Respond ONLY with "Y" if is executable Python code 
+- Respond ONLY with "N" if no executable Python code
+
 '''
 
 TESTCODE_GENERATION_PROMPT = f'''
@@ -287,38 +231,21 @@ Your response will be practically implemented for the verification.
 TEXT_VALIDATION_PROMPT = f'''
 
 # Role
-You are a rigorous task completion evaluator responsible for determining whether the [subtask result] submitted fully meets the [original subtask requirements]. 
-
-# Content
-You will get the input:
-[subtask]: A clear description of the task needs to complete
-[result]: The current result
+You are a subtask result evaluator responsible for determining whether the a subtask result fully meets the subtask requirements. 
 
 # Objective and steps
-Your objective is to evaluate whether the system needs to re-execute the task.
+Your objective is to evaluate whether the system needs to rerun the subtask.
 Follow these steps strictly for evaluation:
-1. Completeness Check: Verify if the result covers all elements required by the task.
+1. Completeness Check: Verify if the result covers all elements required by the subtask.
 2. Accuracy Verification: Detect any factual errors, logical flaws, or data biases.
 3. Format Compliance: Check if the output meets the specified format or structure requirements.
-4. Potential Defects: Identify hidden issues (e.g., security vulnerabilities, ambiguous expressions).
-5. Improvement Necessity: Determine if further optimization is needed.
-Evaluation Criteria:
-  Perfectly Achieved: The result fully meets and exceeds the task requirements.
-  Partially Achieved: The main objectives are met but with room for improvement.
-  Not Achieved: The core objectives are not met, or there are critical flaws.
 
-# Audience
-Your response will be used for later re-executions, they need to know the result quality of the task execution and how to improve it with your suggestions.
+
+
 
 # Response Format
-- Return "NONE" only if the result meets the perfect standard.
-- If not perfect, provide feedback in the following structure:
-[Evaluation Conclusion] "Partially Achieved" or "Not Achieved"
-[Defect Location] Clearly specify the aspects that do not meet the standards.
-[Root Cause] Analyze the underlying reasons for the issues.
-[Improvement Suggestion] Provide a actionable optimization suggestions.
-- Example:
-{TEXT_VALIDATION_EXAMPLE}
+- Only Return "OK" if the result meets the standard.
+- If need to rerun, provide a detailed feedback for them to further improve.
 '''
 
 
@@ -447,14 +374,12 @@ You are a responsible workflow updater for a project. Using the `current_workflo
 # Context:
 You will get the input like this: {UPDATE_INPUT_EXAMPLE}
 
-# Objective & Steps:
-- Update the Workflow
-  1. Evaluate Completed Tasks:
-     - Focus: Examine only tasks with `"status": "failed"`.
-     - Ensure that `"data"` for each task is sufficient, detailed, and directly contributes to the `final_goal`.
 
 - Assess Workflow Structure:
-  1. Examine All Tasks: Review all tasks, including those labeled `"completed"`, `"pending"`, `"failed"`, and `"in-progress"`.
+  1. Examine All Tasks: Review all tasks, including those labeled `"completed"`, `"pending"` and `"failed"`.
+     - Check fails:
+       - If the a task is labeled `"failed"`, it implies that this task has been rerun a lot of times based on multiple feedbacks but still fails.
+       - consider to refine the whole workflow to make this task to be easy to be acheived.
      - Check Adequacy:
        - Confirm the workflow is complete and logically structured to achieve the `final_goal`.
        - Ensure there are no missing critical tasks or dependencies.
@@ -532,42 +457,7 @@ def weighted_avg(values, weights):
 '''
 
 RE_EXECUTE_PROMPT = f'''
-# Role 
-You are a task execution expert responsible for re-executing a subtask based on the original requirements, previous results, and validation feedback.
-
-# Context
-You will get the input:
-[subtask]: a clear description of the task needs to be complete
-[agent_id]: the agent that carries this subtask
-[context]: this includes: Task id, Objective, Result (from task.data).
-[next_objective]: This contains the next objective of this subtask, if empty, means there is not subtask after this.
-[result]: This is the previous results.
-[feedback]: 
-  - [Evaluation Conclusion]: "Partially Achieved" or "Not Achieved"
-  - [Defect Location]: Specific aspects that did not meet the standards.
-  - [Root Cause]: Analysis of why the issues occurred.
-  - [Improvement Suggestion]: Actionable suggestions for optimization.
-
-
-# Objective & Steps:
-Your Objective is to produce a new result that fully meets or exceeds the subtask requirements.
-1. Understand the Requirements: Carefully analyze the [subtask] to ensure full comprehension of the goals and constraints.
-2. Review Previous Results: Identify what was done correctly and what needs improvement based on the [PREVIOUS RESULT].
-3. Incorporate Feedback: Address all issues mentioned in the [feedback] and implement the provided [Improvement Suggestion].
-4. Optimize Output: Ensure the new result is not only free of defects but also optimized for clarity, efficiency, and completeness.
-5. Validate Internally: Before finalizing, perform a self-check to ensure the result aligns with the [subtask] requirements and fixes all identified issues.
-
-- The new result must strictly adhere to the [SUBTASK] requirements.
-- All defects mentioned in the [Defect Location] must be resolved.
-- The [Improvement Suggestion] must be fully implemented unless there is a compelling reason to deviate.
-- If additional improvements are identified, they should be clearly documented and justified.
-
-
-# Audience:
-Your result will be seen as an updated solution of the task for later use.
-
-# Output format & Example:
-Here is an example of the output format: {RE_EXECUTE_EXAMPLE}
+You need to further refine a subtask based on the subtask requirements, previous results, and validation feedbacks.
 '''
 
 

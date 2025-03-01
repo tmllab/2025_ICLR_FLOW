@@ -1,114 +1,84 @@
-```python
-import pygame
-import random
+```latex
+\documentclass{beamer}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\title{Reinforcement Learning Algorithms}
+\author{Lecturer Name}
+\date{\today}
 
-# Constants
-WIDTH, HEIGHT, BLOCK_SIZE = 300, 600, 30
-COLS, ROWS = WIDTH // BLOCK_SIZE, HEIGHT // BLOCK_SIZE
-FPS = 10
+\begin{document}
 
-# Colors
-COLORS = [
-    (0, 0, 0),  # Black
-    (255, 0, 0),  # Red
-    (0, 255, 0),  # Green
-    (0, 0, 255),  # Blue
-    (255, 255, 0),  # Yellow
-    (255, 165, 0),  # Orange
-    (128, 0, 128),  # Purple
-]
+\frame{\titlepage}
 
-# Tetromino shapes
-SHAPES = [
-    [[1, 1, 1, 1]],  # I
-    [[1, 1, 1], [0, 1, 0]],  # T
-    [[1, 1, 0], [0, 1, 1]],  # Z
-    [[0, 1, 1], [1, 1, 0]],  # S
-    [[1, 1], [1, 1]],  # O
-    [[1, 0, 0], [1, 1, 1]],  # L
-    [[0, 0, 1], [1, 1, 1]],  # J
-]
+\begin{frame}
+  \frametitle{Outline}
+  \tableofcontents
+\end{frame}
 
-class Tetromino:
-    def __init__(self):
-        self.shape = random.choice(SHAPES)
-        self.color = random.randint(1, len(COLORS) - 1)
-        self.x = COLS // 2 - len(self.shape[0]) // 2
-        self.y = 0
+% Slide for each algorithm
+\section{Algorithm 1: Q-Learning}
+\begin{frame}
+  \frametitle{Q-Learning}
+  \textbf{Motivation:} 
+  Q-Learning is a model-free reinforcement learning algorithm that learns the value of an action in a particular state.
+  
+  \textbf{Problem:} 
+  How can an agent learn to act optimally in an unknown environment?
+  
+  \textbf{Intuitive Solution:} 
+  The agent learns from the consequences of its actions using a Q-value update rule.
+  
+  \textbf{Mathematical Equation:}
+  \[
+  Q(s, a) \leftarrow Q(s, a) + \alpha \left( r + \gamma \max_{a'} Q(s', a') - Q(s, a) \right)
+  \]
+\end{frame}
 
-    def rotate(self):
-        self.shape = [list(row) for row in zip(*self.shape[::-1])]
+\section{Algorithm 2: SARSA}
+\begin{frame}
+  \frametitle{SARSA}
+  \textbf{Motivation:} 
+  SARSA is an on-policy algorithm where the agent learns the value of the policy being followed.
+  
+  \textbf{Problem:} 
+  How does the agent improve its policy while learning?
+  
+  \textbf{Intuitive Solution:} 
+  The agent updates its Q-values based on the actions it actually takes.
+  
+  \textbf{Mathematical Equation:}
+  \[
+  Q(s, a) \leftarrow Q(s, a) + \alpha \left( r + \gamma Q(s', a') - Q(s, a) \right)
+  \]
+\end{frame}
 
-class GameBoard:
-    def __init__(self):
-        self.board = [[0] * COLS for _ in range(ROWS)]
-        self.score = 0
+% Add additional sections and frames for the remaining algorithms...
 
-    def add_tetromino(self, tetromino):
-        for y, row in enumerate(tetromino.shape):
-            for x, block in enumerate(row):
-                if block:
-                    self.board[y + tetromino.y][x + tetromino.x] = tetromino.color
-        self.clear_lines()
+\section{Algorithm 3: Deep Q-Network (DQN)}
+\begin{frame}
+  \frametitle{Deep Q-Network (DQN)}
+  \textbf{Motivation:} 
+  DQN extends Q-learning using deep neural networks to approximate Q-values.
+  
+  \textbf{Problem:} 
+  How can we handle high-dimensional state spaces?
+  
+  \textbf{Intuitive Solution:} 
+  By using a neural network to generalize Q-values across similar states.
+  
+  \textbf{Mathematical Equation:}
+  \[
+  \text{Loss} = (y - Q(s, a; \theta))^2 \quad \text{where} \quad y = r + \gamma \max_{a'} Q(s', a'; \theta^-)
+  \]
+\end{frame}
 
-    def clear_lines(self):
-        lines_to_clear = [i for i, row in enumerate(self.board) if all(row)]
-        for i in lines_to_clear:
-            del self.board[i]
-            self.board.insert(0, [0] * COLS)
-            self.score += 100
+\section{Conclusion}
+\begin{frame}
+  \frametitle{Conclusion}
+  Reinforcement learning algorithms provide a framework for agents to learn optimal policies through exploration and exploitation.
+\end{frame}
 
-class Tetris:
-    def __init__(self):
-        pygame.init()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Tetris")
-        self.clock = pygame.time.Clock()
-        self.board = GameBoard()
-        self.tetromino = Tetromino()
-        self.running = True
-
-    def draw_board(self):
-        for y in range(ROWS):
-            for x in range(COLS):
-                color = COLORS[self.board.board[y][x]]
-                pygame.draw.rect(self.screen, color, (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE), 0)
-
-    def draw_tetromino(self):
-        for y, row in enumerate(self.tetromino.shape):
-            for x, block in enumerate(row):
-                if block:
-                    color = COLORS[self.tetromino.color]
-                    pygame.draw.rect(self.screen, color, ((x + self.tetromino.x) * BLOCK_SIZE, (y + self.tetromino.y) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE), 0)
-
-    def run(self):
-        while self.running:
-            self.screen.fill((0, 0, 0))
-            self.draw_board()
-            self.draw_tetromino()
-            pygame.display.flip()
-            self.clock.tick(FPS)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
-                        self.tetromino.x -= 1
-                    if event.key == pygame.K_RIGHT:
-                        self.tetromino.x += 1
-                    if event.key == pygame.K_DOWN:
-                        self.tetromino.y += 1
-                    if event.key == pygame.K_UP:
-                        self.tetromino.rotate()
-
-            self.tetromino.y += 1
-            if self.tetromino.y + len(self.tetromino.shape) > ROWS:
-                self.board.add_tetromino(self.tetromino)
-                self.tetromino = Tetromino()
-
-if __name__ == "__main__":
-    Tetris().run()
-    pygame.quit()
+\end{document}
 ```
-This Python script implements a simple Tetris game with a graphical interface using Pygame. The game allows players to manipulate falling tetrominoes and aims to create complete horizontal lines to earn points. The code is self-contained and does not require additional files.
+
+This LaTeX document represents a lecture slide template for various reinforcement learning algorithms, including Q-Learning, SARSA, and Deep Q-Networks. Each algorithm's slide contains sections for motivation, problem statement, intuitive solution, and mathematical equations. The document is structured to allow for additional algorithms to be added as needed, ensuring that the lecture is comprehensive and self-contained.

@@ -6,7 +6,7 @@ class History:
         self.data.append({'result': result, 'feedback': feedback})
 
     def get_history(self):
-        return self.data
+        return str(self.data)
 
     def get_history_index(self, idx = None):
         if not self.data:
@@ -26,7 +26,7 @@ class History:
         return self.data[-1]['result'], self.data[-1]['feedback']
 
     def __str__(self):
-        return f"History={self.data}"
+        return f"History= {self.data}"
     
     def __dict__(self):
         return {'history': self.data}

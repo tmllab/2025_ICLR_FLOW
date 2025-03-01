@@ -38,16 +38,16 @@ class AsyncRunner:
                 result = await self.executer.execute(subtask, agent_id, context, next_objective)
             else:
                 # re-execute here
-                result = await self.executer.re_execute(subtask, agent_id, context, next_objective, result, feedback)
+                result = await self.executer.re_execute(subtask, agent_id, context, next_objective, result, feedback, task_obj.get_history())
 
             feedback, new_status = await self.validator.validate(subtask, result)
             task_obj.save_history(result, feedback)
             task_obj.set_status(new_status)
             if new_status == 'completed' :
                 print('---Result is perfect---')
-                return result
+                break
             i += 1
-
+        print(task_obj.id, '---status is--',task_obj.status)
         return result
 
     async def execute(self, workflow: Workflow, task_id: str) -> str:
