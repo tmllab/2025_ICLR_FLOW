@@ -29,7 +29,7 @@ class Task:
             'next': self.next,
             'prev': self.prev,
             'status': self.status,
-            'history': str(self.history),
+            'history': self.history.get_latest_history(),
             'remaining_dependencies': self.remaining_dependencies,
             'agent': self.agent
         }

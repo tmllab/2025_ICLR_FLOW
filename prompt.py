@@ -385,7 +385,7 @@ UPDATE_INPUT_EXAMPLE = '''
       "agent_id": 1,
       "next": [],
       "prev": ["task0"],
-      "status": "completed",
+      "status": "failed",
       "data": ""
     }
   },
@@ -418,7 +418,7 @@ UPDATE_OUTPUT_EXAMPLE = '''
       "agent_id": 1,
       "next": ["task2"],
       "prev": ["task0"],
-      "status": "completed",
+      "status": "pending",
     },
     "task2": {
       "objective": "Extract thematic elements from the feedback using AI-powered text analytics, identify major concerns and suggestions, and prepare a detailed thematic analysis report.",
@@ -450,11 +450,11 @@ You will get the input like this: {UPDATE_INPUT_EXAMPLE}
 # Objective & Steps:
 - Update the Workflow
   1. Evaluate Completed Tasks:
-     - Focus: Examine only tasks with `"status": "completed"`.
+     - Focus: Examine only tasks with `"status": "failed"`.
      - Ensure that `"data"` for each task is sufficient, detailed, and directly contributes to the `final_goal`.
 
 - Assess Workflow Structure:
-  1. Examine All Tasks: Review all tasks, including those labeled `"completed"`, `"pending"`, and `"in-progress"`.
+  1. Examine All Tasks: Review all tasks, including those labeled `"completed"`, `"pending"`, `"failed"`, and `"in-progress"`.
      - Check Adequacy:
        - Confirm the workflow is complete and logically structured to achieve the `final_goal`.
        - Ensure there are no missing critical tasks or dependencies.
@@ -539,10 +539,10 @@ You are a task execution expert responsible for re-executing a subtask based on 
 You will get the input:
 [subtask]: a clear description of the task needs to be complete
 [agent_id]: the agent that carries this subtask
-[context]:
-[next_objective]:
-[result]:
-[feedback]:
+[context]: this includes: Task id, Objective, Result (from task.data).
+[next_objective]: This contains the next objective of this subtask, if empty, means there is not subtask after this.
+[result]: This is the previous results.
+[feedback]: 
   - [Evaluation Conclusion]: "Partially Achieved" or "Not Achieved"
   - [Defect Location]: Specific aspects that did not meet the standards.
   - [Root Cause]: Analysis of why the issues occurred.
