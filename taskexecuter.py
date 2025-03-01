@@ -59,8 +59,11 @@ class taskExecuter:
 
         user_content = f'''
             Here is the subtask: {subtask}
+            Here is the agent_id: {agent_id}
+            Here is the context: {context}
+            Here is the next_objective: {next_objective}
             Here is the result: {result}
-            Here is the validation feedback: {feedback}
+            Here is the feedback: {feedback}
         '''
         messages = [
             {'role': 'system', 'content': self.re_execute_prompt},
