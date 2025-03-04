@@ -34,6 +34,7 @@ class WorkflowManager:
         )
         self.objective = objective
         self.workflow: Workflow | None = None
+        self.system_prompt = prompt.INIT_WORKFLOW_PROMPT
 
 
 
@@ -42,6 +43,7 @@ class WorkflowManager:
         Refines the current workflow based on completed tasks.
         """
         logger.info("Refining workflow...")
+        # TODO the data for updating should include more information, e.g., tasks status and test info
         current_data = {tid: task.__dict__ for tid, task in self.workflow.tasks.items()}
         new_workflow_data = await self.optimize_workflow(current_data)
 
@@ -51,9 +53,11 @@ class WorkflowManager:
 
     def get_workflow(self) -> Workflow:
 
+        user_content = f'the objective need to be achieved is: {self.objective}'
+
         messages = [
-            {'role': 'system', 'content': prompt.SYSTEM_PROMPT},
-            {'role': 'user', 'content': "the objective need to be achieved is: "+ self.objective}
+            {'role': 'system', 'content': self.system_prompt},
+            {'role': 'user', 'content': user_content}
         ]
         response = self.gpt_client.chat_completion(messages)
         logger.info(f"GPT Response: {response}")
@@ -143,7 +147,8 @@ class WorkflowManager:
                 'next': task_info.get('next', []),
                 'prev': task_info.get('prev', []),
                 'status': task_info.get('status', ''),
-                'data': task_info.get('data', '')
+                # TODO: justify here
+                # 'data': task_info.get('data', '')
             }
             for task_id, task_info in current_workflow.items()
         }

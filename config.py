@@ -3,12 +3,9 @@ import os
 class Config:
     """Centralized configuration parameters."""
 
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
+    OPENAI_API_KEY: str = os.environ("NAME")
     if not OPENAI_API_KEY:
         raise ValueError("Please set the OPENAI_API_KEY environment variable.")
 
     GPT_MODEL: str = "gpt-4o-mini"
-    TEMPERATURE: float = 0.7
-
-
-from globalcontext import global_context
+    TEMPERATURE: float = 1
