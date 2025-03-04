@@ -44,13 +44,13 @@ def main():
         3). The website should have conference venue part with a map.
         '''
     
-    overall_task = '''1. Lecture slide:
-    I am a lecturer. I am teaching the machine learning coure for research students. Please generate latex code for lecture slide for different reinforcement learning algorithms.
-    Note that:
-    1). Note that the lecture duration is 2 hour, so we need to generate 30 pages.
-    2). for each reinforcement learning algorithms, the slide should include motivation, problem and intuitive solution and detailed math equations.
-    3). Please make sure the the lecture have a good self-contain.
-    '''
+    # overall_task = '''1. Lecture slide:
+    # I am a lecturer. I am teaching the machine learning coure for research students. Please generate latex code for lecture slide for different reinforcement learning algorithms.
+    # Note that:
+    # 1). Note that the lecture duration is 2 hour, so we need to generate 30 pages.
+    # 2). for each reinforcement learning algorithms, the slide should include motivation, problem and intuitive solution and detailed math equations.
+    # 3). Please make sure the the lecture have a good self-contain.
+    # '''
     # overall_task: str = '''Develop a Tetris game with a graphical user interface (GUI) in Python. 
     #     The game should allow players to manipulate falling tetrominoes by rotating and moving them horizontally. 
     #     The objective is to create complete horizontal lines, which will then disappear, earning points for the player. 

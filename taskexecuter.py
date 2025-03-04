@@ -88,7 +88,6 @@ class taskExecuter:
 
         """
         
-        print(user_content)
 
         messages = [
             {'role': 'system', 'content': self.re_execute_prompt},

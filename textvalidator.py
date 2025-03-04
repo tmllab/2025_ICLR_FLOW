@@ -16,17 +16,17 @@ class textValidator:
         print('------Run textValidator.validate()------')
 
         user_content = f"""
-        ## current task Requirement:
+        ## Current Task Requirement:
         {task_obj}
 
         ---
 
-        ## current task change History:
+        ## Current Task change History:
         {history}
 
         ---
 
-        ## current task Latest Result:
+        ## Current Task Latest Result:
         {result}
         """
 
@@ -34,8 +34,7 @@ class textValidator:
             {'role': 'system', 'content': self.text_validation_prompt},
             {'role': 'user', 'content': user_content}
         ]
-        print(user_content)
-
+    
         feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
         with open('validate_log.json', 'a', encoding='utf-8') as file:
             file.write('----------\nGOT TEXT VALIDATION\n----------')

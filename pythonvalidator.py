@@ -76,7 +76,7 @@ class pythonValidator:
         
         return output
     
-    async def is_python_code(self, result,task_obj) -> bool:
+    async def is_python_code(self, result, task_obj) -> bool:
         print('------Run pythonValidator.is_python_code()------')
         ##TODO check if the result need to be runned based on task_obj, 
         # it is possible that the code is just for explaination  
