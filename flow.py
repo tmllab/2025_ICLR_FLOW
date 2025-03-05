@@ -43,7 +43,7 @@ class Flow:
         max_itt(int): how many times the validation work will repeat.
     """
 
-    def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, max_refine = 5, n_candidate_graphs=10, workflow = None, max_itt: int = 3):
+    def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, max_refine = 5, n_candidate_graphs=10, workflow = None, max_itt: int = 1):
  
         self.overall_task = overall_task
         self.runner = AsyncRunner(overall_task, max_itt)
