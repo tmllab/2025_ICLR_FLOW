@@ -43,15 +43,15 @@ class Flow:
         max_itt(int): how many times the validation work will repeat.
     """
 
-    def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, max_refine = 5, n_candidate_graphs=10, workflow = None, max_itt: int = 1):
+    def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, max_refine_itt = 5, n_candidate_graphs=10, workflow = None, max_validation_itt: int = 1):
  
         self.overall_task = overall_task
-        self.runner = AsyncRunner(overall_task, max_itt)
+        self.runner = AsyncRunner(overall_task, max_validation_itt)
         self.optimizer = WorkflowManager(overall_task)
         self.active_tasks: Dict[str, asyncio.Task] = {}
         self.redefining = False
         self.task_done_counter = 0
-        self.max_refine = max_refine
+        self.max_refine_itt = max_refine_itt
         if workflow is not None:
             self.workflow = workflow
         else:
@@ -169,7 +169,7 @@ class Flow:
 
         # Trigger workflow refinement when threshold is reached
         print(self.task_done_counter , self.refine_threhold )
-        if self.task_done_counter >= self.refine_threhold and not self.redefining and self.max_refine > 0:
+        if self.task_done_counter >= self.refine_threhold and not self.redefining and self.max_refine_itt > 0:
             logger.info(f"Task {task_id} triggers workflow refinement.")
             self.task_done_counter = 0
             self.redefining = True
@@ -184,7 +184,7 @@ class Flow:
             await self.optimizer.update_workflow()
             self.can_schedule_tasks.set()
             self.redefining = False
-            self.max_refine -= 1
+            self.max_refine_itt -= 1
 
         # Continue scheduling any remaining tasks
         await self.run()

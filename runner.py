@@ -21,9 +21,9 @@ logger = logging.getLogger(__name__)
 # -----------------------------------------------------------------------------
 class AsyncRunner:
     """Executes an individual task asynchronously via GPT."""
-    def __init__(self, overall_task: str, max_itt):
+    def __init__(self, overall_task: str, max_validation_itt):
         self.overall_task = overall_task
-        self.max_itt = max_itt
+        self.max_validation_itt = max_validation_itt
         self.executer = taskExecuter(overall_task)
         self.validator = Validator()
 
@@ -32,7 +32,7 @@ class AsyncRunner:
         i = 0
         result = ''
 
-        while i < self.max_itt:
+        while i < self.max_validation_itt:
             print(f'------Go into while loop, validating------ \ntask: {task_obj.id} \ntimes: {i}')
             if i == 0:
                 result = await self.executer.execute(subtask, agent_id, context, next_objective)
