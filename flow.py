@@ -43,7 +43,7 @@ class Flow:
         max_itt(int): how many times the validation work will repeat.
     """
 
-    def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, max_refine_itt = 5, n_candidate_graphs=10, workflow = None, max_validation_itt: int = 1):
+    def __init__(self, overall_task: str, refine_threhold=3, max_refine_itt = 5, n_candidate_graphs=10, workflow = None, max_validation_itt: int = 1):
  
         self.overall_task = overall_task
         self.runner = AsyncRunner(overall_task, max_validation_itt)
@@ -62,11 +62,7 @@ class Flow:
 
         # Ensures only one scheduling operation at a time
         self.schedule_lock = asyncio.Lock()
-
-        if enable_refine==False:
-            self.refine_threhold=float('inf')
-        else:
-            self.refine_threhold=refine_threhold
+        self.refine_threhold=refine_threhold
 
     async def run(self):
         """

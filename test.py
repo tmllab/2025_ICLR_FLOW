@@ -79,8 +79,7 @@ from flow import Flow
 from summary import Summary
 
 
-
-manager = Flow(overall_task=overall_task, enable_refine=False, refine_threhold=0, n_candidate_graphs=0, workflow=workflow,max_itt=1)
+manager = Flow(overall_task=overall_task,  refine_threhold=0, n_candidate_graphs=0, workflow=workflow)
 asyncio.run(manager.run_async())
 
 
