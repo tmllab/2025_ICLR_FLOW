@@ -38,7 +38,7 @@ class AsyncRunner:
                 result = await self.executer.execute(subtask, agent_id, context, next_objective)
             else:
                 # re-execute here
-                result = await self.executer.re_execute(subtask, context, next_objective, result, feedback, task_obj.get_history())
+                result = await self.executer.re_execute(subtask, context, next_objective, result, task_obj.get_history())
 
             feedback, new_status = await self.validator.validate(subtask, result,  task_obj.get_history())
             task_obj.save_history(result, feedback)

@@ -54,37 +54,37 @@ class taskExecuter:
 
         return result
 
-    async def re_execute(self, subtask: str, context: str, next_objective: str, result: str, feedback: str, history:str):
+    async def re_execute(self, subtask: str, context: str, next_objective: str, result: str, history:str):
         '''Re-execute the task following the feedback and result'''
 
 
 
         user_content = f"""
-        ## You need to further refine the subtask results based on following information
+## You need to further refine the subtask results based on following information
 
 
-        ## Context from Parent Tasks:
-        {context}
-  
-        ---
+## Context from Parent Tasks:
+{context}
 
-        ##Child Tasks objectives:
-        {next_objective}
-  
-        ---
+---
 
-        ## The Overall Goal:
-        {self.overall_task}
+##Child Tasks objectives:
+{next_objective}
 
-        ---
+---
 
-        ## current task Requirement:
-        {subtask}
+## The Overall Goal:
+{self.overall_task}
 
-        ---
+---
 
-        ## current task Change History:
-        {history}
+## current task Requirement:
+{subtask}
+
+---
+
+## current task Change History:
+{history}
 
         """
         
@@ -93,7 +93,7 @@ class taskExecuter:
             {'role': 'system', 'content': self.re_execute_prompt},
             {'role': 'user', 'content': user_content}
         ]
-
+        print(user_content)
         result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
 
         if result:

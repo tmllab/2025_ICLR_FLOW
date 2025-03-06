@@ -16,18 +16,18 @@ class textValidator:
         print('------Run textValidator.validate()------')
 
         user_content = f"""
-        ## Current Task Requirement:
-        {task_obj}
+## Current Task Requirement:
+{task_obj}
 
-        ---
+---
 
-        ## Current Task change History:
-        {history}
+## Current Task change History:
+{history}
 
-        ---
+---
 
-        ## Current Task Latest Result:
-        {result}
+## Current Task Latest Result:
+{result}
         """
 
         messages = [

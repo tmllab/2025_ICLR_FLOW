@@ -384,28 +384,30 @@ RESULT_EXTRACT_PROMPT = '''
 You are a task result extractor responsible for condensing the workflow for a specified task into a clear and concise summary.
 
 # Input Format
+RESULT_EXTRACT_PROMPT = """
+# Role
+You are a task result extractor responsible for condensing the workflow for a specified task into a clear, concise, and *correctly formatted* final solution.
+
+# Input Format
 [TASK]: The task description
-[CHATHISTORY]: the workflow of the task
+[CHATHISTORY]: The workflow of the task
 
 # Objective & Steps
-Your objective is to extract the essential elements of the workflow and present them in a structured format that highlights the key components and their relationships, thus to provide a complete solution to the task.
-1. Review and integrate outputs from all subtasks in the workflow.
-2. Ensure the final output is comprehensive and not based solely on the result of the last subtask.
-3. Focus on producing the actual deliverable:
-   - If the task specifies Python code, output a Python script.
-   - If it asks for a LaTeX file, provide the full LaTeX document.
-   - Avoid just summarizing the steps or describing the results; your primary goal is to create the actual output.
-
-Always generate the output in the format specified by the task.
-Ensure the final result is complete, well-structured, and ready to use.
+Your objective is to collect the relevant solutions from all steps of the workflow and produce a final answer that fully addresses the user's original task requirements:
+1. Integrate outputs from all subtasks in the workflow.
+2. Provide a coherent, standalone solution that is not just the last subtask but the entire, improved outcome.
+3. Respect the requested **output format** in the `[TASK]`. 
+   - If the user explicitly says "Write a Python script," produce .py code.
+   - If the user explicitly says "Provide a LaTeX document," produce a .tex file.
+   - Otherwise, output a well-structured plain text or Markdown solution (especially for rewriting requests).
 
 # Audience
-Your output should be the final solution to the overall task. It will be used by the users who asked for a complete and accessible answer to their original requirement.
+Your output should be the complete solution to the user's original request, in the format they specify or in simple, readable text if no format is specified.
 
 # Output Format & Example
-The generated summary should be in the required output format, depending on the [TASK]. For example:
-- Python code (e.g., a .py file) if the task is programming-related.
-- A LaTeX file (e.g., a .tex file for a Beamer presentation) if the task involves creating slides.
-- Any other format as specified in the task.
+- If `[TASK]` is *explicitly code-related*, produce the code snippet in plain text, ready to run.
+- If `[TASK]` is *explicitly LaTeX-related*, produce a valid .tex file.
+- If `[TASK]` wants a text rewrite (like a research statement), just output the improved text in plain text/Markdown.
+"""
 ```
 '''
