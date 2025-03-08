@@ -155,21 +155,34 @@ You are a subtask re-execution agent. Your role is to generate an improved outco
 Your output will serve as an improved solution for the subtask and will undergo further validation and integration into the larger workflow.
 '''
 
-IS_PYTHON_PROMPT = f'''
-You need to check if the content contains a python code block.
+IS_PYTHON_PROMPT = '''
+# Role
+You need to check if the content contains Python code that is **executable and meaningful for testing**.
+
+# Objective and Steps
+- Consider the code meaningful if it:
+  - Defines functions, classes, or logic that performs computations or produces outputs.
+  - Contains conditions, loops, or data manipulation that can be verified through test cases.
+
+- Consider the code NOT meaningful if it:
+  - Only defines constants, variables, or data structures without functionality.
+  - Lacks executable logic (e.g., pure imports or comments only).
 
 # Response Format
-- Respond ONLY with "Y" if it is executable Python code.
-- Respond ONLY with "N" if no executable Python code is present.
+- Respond ONLY with "Y" if the code is executable and meaningful for testing.
+- Respond ONLY with "N" if no such code is present.
 '''
 
 TESTCODE_GENERATION_EXAMPLE = '''
 def add(a, b):
     return a * b  # Intentional bug
 
-# We'll define a function that tests each assertion individually.
-# Each assertion is wrapped in try/except to capture all failures.
+# Test function to validate code behavior
+# Ensures no GUI or unwanted side-effects are triggered
 def run_tests():
+    if '__main__' not in __name__:
+        return  # Prevents accidental execution in GUI environments
+
     failures = []
 
     try:
@@ -193,43 +206,48 @@ def run_tests():
     else:
         print("All tests passed!")
 
-# Execute our tests
-run_tests()
+# Execute tests only if conditions are met
+if __name__ == "__main__":
+    run_tests()
 '''
 
 TESTCODE_GENERATION_PROMPT = f'''
 # Role
 You are a test code generator responsible for creating comprehensive test cases for Python code: [RESULT].
+
 # Content
 You will get the input:
-[SUBTASK]: A clear description of the task to be completed
+[SUBTASK]: A clear description of the task to be completed  
 [RESULT]: The Python code that needs to be tested
 
 # Objective and Steps
-Your objective is to generate structured test cases that verify the functionality and edge cases of the provided code: [RESULT], while considering the goal of the task: [SUBTASK].
+Your objective is to generate structured test cases that verify the functionality of the provided code: [RESULT], while considering the goal of the task: [SUBTASK].
+
 Follow these steps strictly for test creation:
-1. Function Analysis:
+1. **Function Analysis:**
    - Identify input parameters and return types.
    - Understand the expected behavior.
    - Determine edge cases and boundary conditions.
    - Consider the task objective; ensure that the tests align with the overall goal defined in [SUBTASK].
+   - **Check if the provided code is meaningful for testing.** Skip test generation if the code only defines constants, simple data structures, or unused functions.
 
-2. Test Case Design:
+2. **Test Case Design:**
    - Create test cases for normal operation.
    - Include edge cases (e.g., empty inputs, boundary values).
    - Consider error conditions and invalid inputs.
 
-3. Test Structure Requirements:
+3. **Test Structure Requirements:**
    - Each test must be wrapped in try/except for assertion errors.
    - Tests must be independent and self-contained.
    - Clear error messages must be provided for failures.
    - All test results must be collected and reported.
+   - Ensure the test code checks for `__main__` to avoid unexpected execution in GUI environments.
 
 # Audience
 Your response will be practically implemented for verification.
 
 # Output Format & Example
-- Output should be code only without description and explanation
+- Output should be code only without description and explanation  
 - Example:
 {TESTCODE_GENERATION_EXAMPLE}
 '''
