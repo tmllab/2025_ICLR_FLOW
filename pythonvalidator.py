@@ -6,7 +6,30 @@ import sys
 import io
 
 class pythonValidator:
+    """
+    A validator class that checks Python code execution and validity.
+
+    This class is responsible for:
+    - Validating Python code execution
+    - Generating test code for validation
+    - Executing Python code safely
+    - Checking if content contains executable Python code
+
+    Attributes:
+        gpt_client (GPTClient): Client for interacting with GPT API.
+        generate_test_prompt (str): Prompt template for test code generation.
+        check_python_prompt (str): Prompt template for Python code detection.
+    """
+
     def __init__(self):
+        """
+        Initialize the pythonValidator with GPT client and prompts.
+
+        Sets up:
+        - GPT client with configuration parameters
+        - Test generation prompt template
+        - Python code detection prompt template
+        """
         self.gpt_client = GPTClient(
             api_key=Config.OPENAI_API_KEY,
             model=Config.GPT_MODEL,
@@ -15,8 +38,25 @@ class pythonValidator:
         self.generate_test_prompt = prompt.TESTCODE_GENERATION_PROMPT
         self.check_python_prompt = prompt.IS_PYTHON_PROMPT
         
-    async def validate(self, task_obj, result) -> str:
-        '''Generate python test code and execute test code.'''
+    async def validate(self, task_obj, result) -> tuple[str, str]:
+        """
+        Validate Python code by generating and executing test code.
+
+        This method:
+        1. Generates test code based on task and result
+        2. Executes the test code
+        3. Logs validation results
+        4. Determines validation status
+
+        Args:
+            task_obj: The task object containing validation requirements.
+            result (str): The Python code to validate.
+
+        Returns:
+            tuple[str, str]: A tuple containing (error_message, status).
+                           status can be 'completed' or 'failed'.
+                           error_message is None if validation succeeds.
+        """
         print('------Run pythonValidator.validate()------')
 
         test_code = await self.generate_test_function(task_obj, result)
@@ -37,7 +77,19 @@ class pythonValidator:
             return runresult, 'failed'
     
     async def generate_test_function(self, task_obj, result) -> str:
-        '''Generate test function according to task objective and execute result.'''
+        """
+        Generate test code for validating Python code execution.
+
+        Args:
+            task_obj: The task object containing test requirements.
+            result (str): The Python code to test.
+
+        Returns:
+            str: Generated test code that validates the result.
+
+        Note:
+            The generated test code is stripped of Python markdown formatting.
+        """
         print('------Run pythonValidator.generate_test_function()------')
 
         user_content = f'''
@@ -55,8 +107,22 @@ class pythonValidator:
 
         return test_code
     
-    async def execute_python_code(self, test_code): 
-        """Executes a Python script from a string and captures the output."""
+    async def execute_python_code(self, test_code) -> str: 
+        """
+        Execute Python code safely and capture its output.
+
+        This method:
+        1. Redirects stdout to capture output
+        2. Executes the code in a controlled environment
+        3. Handles any execution errors
+        4. Restores stdout
+
+        Args:
+            test_code (str): The Python code to execute.
+
+        Returns:
+            str: The execution output or error message.
+        """
         print('------Run pythonValidator.execute_python_code------')
 
         # Redirect stdout
@@ -77,6 +143,20 @@ class pythonValidator:
         return output
     
     async def is_python_code(self, result, task_obj) -> bool:
+        """
+        Check if the given result contains executable Python code.
+
+        Args:
+            result (str): The content to check for Python code.
+            task_obj: The task object providing context for the check.
+
+        Returns:
+            bool: True if the content contains executable Python code, False otherwise.
+
+        Note:
+            This method uses GPT to analyze the content and determine if it's
+            valid Python code that should be executed.
+        """
         print('------Run pythonValidator.is_python_code()------')
         ##TODO check if the result need to be runned based on task_obj, 
         # it is possible that the code is just for explaination  

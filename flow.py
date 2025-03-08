@@ -34,13 +34,12 @@ class Flow:
         optimizer (WorkflowManager): An instance used to refine the workflow.
         active_tasks (Dict[str, asyncio.Task]): Maps task IDs to active asyncio tasks.
         completed_tasks (Dict[str, asyncio.Task]): Maps task IDs to completed tasks.
-        redefining (bool): Whether the workflow is currently being redefined.
+        redefining (bool): Whether the workflow is currently
         task_done_counter (int): Counts how many tasks have completed since last workflow refinement.
         can_schedule_tasks (asyncio.Event): Controls if scheduling is allowed.
         schedule_lock (asyncio.Lock): Prevents race conditions in scheduling.
         refine_threhold (int): how many tasks have completed to tragger the workflow refinement.
-        enable_refine (bool): enable workflow refinment or not
-        max_itt(int): how many times the validation work will repeat.
+        max_validation_itt(int): how many times the validation work will repeat.
     """
 
     def __init__(self, overall_task: str, refine_threhold=3, max_refine_itt = 5, n_candidate_graphs=10, workflow = None, max_validation_itt: int = 1):

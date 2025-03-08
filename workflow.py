@@ -5,9 +5,42 @@ import json
 from history import History
 
 class Task:
-    """Data structure representing a workflow task."""
+    """
+    Data structure representing a workflow task.
+
+    This class encapsulates all information about a single task in the workflow:
+    - Task identification and objectives
+    - Dependencies (previous and next tasks)
+    - Execution status and history
+    - Agent assignment and execution details
+
+    Attributes:
+        id (str): Unique identifier for the task.
+        objective (str): Description of what the task should accomplish.
+        agent_id (int): Identifier for the agent assigned to this task.
+        next (List[str]): List of task IDs that depend on this task.
+        prev (List[str]): List of task IDs this task depends on.
+        status (str): Current status of the task ('pending', 'completed', 'failed').
+        history (History): Object tracking execution attempts and feedback.
+        remaining_dependencies (int): Count of uncompleted dependencies.
+        agent (str): Additional agent information or specifications.
+    """
+
     def __init__(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
                  status: str = 'pending', history: History = None, agent: str = ''):
+        """
+        Initialize a new Task instance.
+
+        Args:
+            id (str): Unique task identifier.
+            objective (str): Task description/goal.
+            agent_id (int): ID of agent assigned to task.
+            next (List[str]): Downstream dependent task IDs.
+            prev (List[str]): Upstream dependency task IDs.
+            status (str, optional): Initial task status. Defaults to 'pending'.
+            history (History, optional): Execution history object. Defaults to None.
+            agent (str, optional): Additional agent details. Defaults to empty string.
+        """
         self.id = id
         self.objective = objective
         self.agent_id = agent_id
@@ -24,7 +57,13 @@ class Task:
   
 
     def to_dict(self) -> Dict[str, Any]:
-        """Converts the Task object to a dictionary for JSON serialization."""
+        """
+        Convert the Task object to a dictionary format for serialization.
+
+        Returns:
+            Dict[str, Any]: Dictionary containing all task attributes,
+                           with the latest execution result from history.
+        """
         return {
             'id': self.id,
             'objective': self.objective,
@@ -38,15 +77,40 @@ class Task:
         }
     
     def set_status(self, status: str):
+        """
+        Update the task's execution status.
+
+        Args:
+            status (str): New status value ('pending', 'completed', 'failed').
+        """
         self.status = status
 
-    def save_history(self, data: str, feedback = ''):
+    def save_history(self, data: str, feedback: str = ''):
+        """
+        Save execution result and feedback to task history.
+
+        Args:
+            data (str): Execution result or output.
+            feedback (str, optional): Validation feedback. Defaults to empty string.
+        """
         self.history.save(data, feedback)
 
-    def get_history(self):
+    def get_history(self) -> str:
+        """
+        Get formatted string of complete execution history.
+
+        Returns:
+            str: Formatted history of all execution attempts and feedback.
+        """
         return self.history.get_history()
     
-    def get_latest_history(self):
+    def get_latest_history(self) -> tuple[str, str]:
+        """
+        Get the most recent execution result and feedback.
+
+        Returns:
+            tuple[str, str]: Tuple of (latest_result, latest_feedback).
+        """
         result, feedback = self.history.get_latest_history()
         return result, feedback
 
@@ -244,7 +308,7 @@ class Workflow:
         for p in task.prev:
             if p in self.tasks and id in self.tasks[p].next:
                 self.tasks[p].next.remove(id)
-        # Remove this task id from its children’s prev lists.
+        # Remove this task id from its children's prev lists.
         for n in task.next:
             if n in self.tasks and id in self.tasks[n].prev:
                 self.tasks[n].prev.remove(id)

@@ -17,8 +17,33 @@ logger = logging.getLogger(__name__)
 # Task Execution
 # -----------------------------------------------------------------------------
 class taskExecuter:
-    """Executes an individual task asynchronously via GPT."""
+    """
+    Handles the execution of individual tasks using GPT-based language models.
+
+    This class is responsible for:
+    - Managing GPT client configuration
+    - Executing tasks with appropriate context
+    - Handling task re-execution based on feedback
+    - Formatting prompts for task execution
+
+    Attributes:
+        gpt_client (GPTClient): Client for interacting with GPT API.
+        overall_task (str): The main task description providing global context.
+        execute_prompt (str): Template prompt for initial task execution.
+        re_execute_prompt (str): Template prompt for task re-execution.
+    """
     def __init__(self, overall_task):
+        """
+        Initialize the taskExecuter with necessary configurations.
+
+        Args:
+            overall_task (str): The main task description that provides context
+                              for all subtask executions.
+
+        Note:
+            Initializes GPT client with configuration parameters from Config class
+            and sets up execution prompts.
+        """
         self.gpt_client = GPTClient(
             api_key=Config.OPENAI_API_KEY,
             model=Config.GPT_MODEL,
@@ -28,9 +53,32 @@ class taskExecuter:
         self.execute_prompt = prompt.TASK_EXECUTION_PROMPT
         self.re_execute_prompt = prompt.TASK_REEXECUTION_PROMPT
     
-    async def execute(self, subtask: str, agent_id: str, context: str, next_objective: str):
-        '''Execute the task for the first result'''
+    async def execute(self, subtask: str, agent_id: str, context: str, next_objective: str) -> str:
+        """
+        Execute a task for the first time to get initial results.
 
+        This method constructs a comprehensive prompt that includes:
+        - Context from previously completed tasks
+        - Overall goal of the workflow
+        - Specific subtask to be executed
+        - Objectives of subsequent tasks
+
+        Args:
+            subtask (str): The specific task to be executed.
+            agent_id (str): Identifier for the agent executing the task.
+            context (str): Context from previously completed tasks.
+            next_objective (str): Objectives of downstream tasks.
+
+        Returns:
+            str: The execution result from the GPT model.
+
+        Note:
+            The method formats the prompt to ensure the model:
+            1. Focuses only on the assigned subtask
+            2. Uses context appropriately
+            3. Aligns with overall goals
+            4. Provides output suitable for downstream tasks
+        """
         logger.info(f"Task '{subtask}' started by agent '{agent_id}'.")
         
         # User prompt with context and objectives
@@ -54,37 +102,56 @@ class taskExecuter:
 
         return result
 
-    async def re_execute(self, subtask: str, context: str, next_objective: str, result: str, history:str):
-        '''Re-execute the task following the feedback and result'''
+    async def re_execute(self, subtask: str, context: str, next_objective: str, result: str, history: str) -> str:
+        """
+        Re-execute a task based on previous results and feedback.
 
+        This method is called when initial execution needs improvement. It provides:
+        - Previous execution history
+        - Original context and objectives
+        - Clear instructions for refinement
 
+        Args:
+            subtask (str): The specific task to be refined.
+            context (str): Context from parent tasks.
+            next_objective (str): Objectives of child tasks.
+            result (str): Previous execution result.
+            history (str): History of previous execution attempts and feedback.
 
+        Returns:
+            str: The refined execution result from the GPT model.
+
+        Note:
+            This method is specifically designed for iterative improvement,
+            taking into account previous attempts and feedback to produce
+            better results.
+        """
         user_content = f"""
-## You need to further refine the subtask results based on following information
+            ## You need to further refine the subtask results based on following information
 
 
-## Context from Parent Tasks:
-{context}
+            ## Context from Parent Tasks:
+            {context}
 
----
+            ---
 
-##Child Tasks objectives:
-{next_objective}
+            ##Child Tasks objectives:
+            {next_objective}
 
----
+            ---
 
-## The Overall Goal:
-{self.overall_task}
+            ## The Overall Goal:
+            {self.overall_task}
 
----
+            ---
 
-## current task Requirement:
-{subtask}
+            ## current task Requirement:
+            {subtask}
 
----
+            ---
 
-## current task Change History:
-{history}
+            ## current task Change History:
+            {history}
 
         """
         

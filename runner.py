@@ -20,14 +20,56 @@ logger = logging.getLogger(__name__)
 # Async Runner for Task Execution
 # -----------------------------------------------------------------------------
 class AsyncRunner:
-    """Executes an individual task asynchronously via GPT."""
+    """
+    Executes individual tasks asynchronously using GPT-based task execution.
+
+    This class handles the execution of tasks, including validation and re-execution
+    if necessary. It maintains the execution context and manages the interaction
+    between task execution and validation.
+
+    Attributes:
+        overall_task (str): The main task description for the entire workflow.
+        max_validation_itt (int): Maximum number of validation/re-execution iterations.
+        executer (taskExecuter): Instance handling the actual task execution.
+        validator (Validator): Instance handling result validation.
+    """
     def __init__(self, overall_task: str, max_validation_itt):
+        """
+        Initialize the AsyncRunner with task execution parameters.
+
+        Args:
+            overall_task (str): The main task description that provides context for execution.
+            max_validation_itt (int): Maximum number of validation iterations allowed per task.
+        """
         self.overall_task = overall_task
         self.max_validation_itt = max_validation_itt
         self.executer = taskExecuter(overall_task)
         self.validator = Validator()
 
     async def _execute(self, task_obj: Task, subtask: str, agent_id: str, context: str, next_objective: str) -> str:
+        """
+        Internal method to execute a task with validation and potential re-execution.
+
+        This method handles the core execution loop including:
+        1. Initial task execution
+        2. Result validation
+        3. Re-execution if necessary (up to max_validation_itt times)
+        4. History tracking of execution attempts
+
+        Args:
+            task_obj (Task): The task object being executed.
+            subtask (str): The specific objective/instruction for this task.
+            agent_id (str): Identifier for the agent executing the task.
+            context (str): Context from previous task results.
+            next_objective (str): Objectives of downstream tasks.
+
+        Returns:
+            str: The final execution result, whether perfect or after max iterations.
+
+        Note:
+            The method will attempt to improve results through multiple iterations
+            if the validator indicates the result is not perfect.
+        """
         print('------Run _execute------')
         i = 0
         result = ''
@@ -51,8 +93,31 @@ class AsyncRunner:
         return result
 
     async def execute(self, workflow: Workflow, task_id: str) -> str:
+        """
+        Main execution method that orchestrates the task execution process.
+
+        This method:
+        1. Validates task existence in workflow
+        2. Retrieves necessary context from previous tasks
+        3. Gets downstream objectives
+        4. Triggers the actual execution process
+        5. Handles result storage and logging
+
+        Args:
+            workflow (Workflow): The workflow containing the task and its relationships.
+            task_id (str): Unique identifier of the task to execute.
+
+        Returns:
+            str: The execution result.
+
+        Raises:
+            ValueError: If the task_id is not found in the workflow.
+
+        Note:
+            This is the primary method that should be called to execute a task,
+            as it handles all the necessary setup and context gathering.
+        """
         print('------Run execute(not _execute)------')
-        """Wraps task execution logic, incorporating context and downstream objectives."""
         if task_id not in workflow.tasks:
             logger.error(f"Task '{task_id}' not found in workflow.")
             return f"Error: Task '{task_id}' not found."
