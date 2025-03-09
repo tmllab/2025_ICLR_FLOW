@@ -1,5 +1,6 @@
 from gptClient import GPTClient
 from config import Config
+import preprocessing
 import json
 import prompt
 import sys
@@ -61,8 +62,9 @@ class pythonValidator:
 
         test_code = await self.generate_test_function(task_obj, result, history)
 
-        ### TODO result_for_test = comment_out_non_functions_and_imports(result), 
+        result_for_test = preprocessing.extract_functions(result)
         # and concat result_for_test with test_code  ....
+        test_code = result_for_test + test_code
         runresult = await self.execute_python_code(test_code)
 
         # Logging execution result for debugging
@@ -74,10 +76,10 @@ class pythonValidator:
 
         if 'Error executing code:' not in runresult:
             print('***Python code with no bugs***')
-            return None, 'completed', test_code
+            return None, 'completed', test_code, runresult
         else:
             print('***Python code with bugs***')
-            return runresult, 'failed', test_code
+            return runresult, 'failed', test_code, runresult
     
     async def generate_test_function(self, task_obj, result, history) -> str:
         """

@@ -179,76 +179,84 @@ You need to check if the content contains Python code that is **executable and m
 '''
 
 
+
 TESTCODE_GENERATION_EXAMPLE = '''
 def run_tests():
-    if '__main__' not in __name__:
-        return  # Prevents accidental execution in GUI environments
 
     failures = []
 
     try:
         assert add(2, 3) == 5, "Test failed: add(2,3) should return 5"
     except AssertionError as e:
-        print(str(e))
+        failures.append(str(e))
 
     try:
         assert add(-1, 1) == 0, "Test failed: add(-1,1) should return 0"
     except AssertionError as e:
-        print(str(e))
+        failures.append(str(e))
 
     try:
         assert add(0, 0) == 0, "Test failed: add(0,0) should return 0"
     except AssertionError as e:
-        print(str(e))
+        failures.append(str(e))
 
     if failures:
+        print("'Error executing code:'")
         for f in failures:
             print(f)
     else:
         print("All tests passed!")
+
+run_tests()
+'''
+
+TESTCODE_EXAMPLE = '''
+def add(a, b):
+    return a + b
 '''
 
 TESTCODE_GENERATION_PROMPT = f'''
-# Role
-You are a test code generator responsible for creating comprehensive test cases for Python code: [RESULT].
+# Role  
+You are a test code generator responsible for creating comprehensive test cases for Python code: `[RESULT]`.  
 
-# Content
+# Content  
 You will get the input:  
-**[SUBTASK]**: A clear description of the task to be completed  
-**[RESULT]**: The Python code that needs to be tested  
+- `[SUBTASK]`: A clear description of the task to be completed.  
+- `[RESULT]`: The Python code that needs to be tested.  
 
-# Objective and Steps
-Your objective is to generate structured test cases that verify the functionality of the provided code: [RESULT], while considering the goal of the task: [SUBTASK].
+# Objective and Steps  
+Your objective is to generate structured test cases that verify the functionality of the provided code: `[RESULT]`, while considering the goal of the task: `[SUBTASK]`.  
 
-Follow these steps strictly for test creation:
+Follow these steps strictly for test creation:  
 
-### 1. **Function Analysis**
-- Identify input parameters and return types.
-- Understand the expected behavior.
-- Determine edge cases and boundary conditions.
-- Consider the task objective; ensure that the tests align with the overall goal defined in [SUBTASK].
-- **Check if the provided code is meaningful for testing.** Skip test generation if the code only defines constants, simple data structures, or unused functions.
+### 1. **Function Analysis**  
+- Identify input parameters and return types.  
+- Understand the expected behavior.  
+- Determine edge cases and boundary conditions.  
+- Consider the task objective; ensure that the tests align with the overall goal defined in `[SUBTASK]`.  
+- **Check if the provided code is meaningful for testing.** Skip test generation if the code only defines constants, simple data structures, or unused functions.  
 
-### 2. **Test Case Design**
-- Create test cases for normal operation.
-- Include edge cases (e.g., empty inputs, boundary values).
-- Consider error conditions and invalid inputs.
+### 2. **Test Case Design**  
+- Create test cases for normal operation.  
+- Include edge cases (e.g., empty inputs, boundary values).  
+- Consider error conditions and invalid inputs.  
 
-### 3. **Test Structure Requirements**
-- Each test must be wrapped in `try/except` for assertion errors.
-- Tests must be independent and self-contained.
-- Clear error messages must be provided for failures.
-- All test results must be collected and reported.
-- Ensure the test code checks for `__main__` to avoid unexpected execution in GUI environments.
-- **If the provided code includes GUI components, mock GUI dependencies to prevent pop-up windows or graphical interactions during test execution.** Utilize libraries like `unittest.mock` or appropriate stubbing techniques to bypass GUI-related elements.
+### 3. **Test Structure Requirements**  
+- **Each test case must be wrapped in a separate `try/except` block.**  
+- **Each `try/except` block must contain only one assertion.**  
+- Tests must be independent and self-contained.  
+- Clear error messages must be provided for failures.  
+- All test results must be collected and reported.  
 
-# Audience
-Your response will be practically implemented for verification.
-
+# Audience  
+Your response will be practically implemented for verification.  
 
 # Output Format & Example
-- Output should be code only without description and explanation  
+- Output should only contains test code.
 - Example:
+Here is the input:
+{TESTCODE_EXAMPLE}
+Here is the test code:
 {TESTCODE_GENERATION_EXAMPLE}
 '''
 

@@ -1,78 +1,90 @@
 from pythonvalidator import pythonValidator
 import asyncio
+
 python_code = '''python
 import tkinter as tk
-from tkinter import messagebox
 import random
 
-# Function to determine the winner of the game
-def determine_winner(player_choice, ai_choice):
+# Function to evaluate the game result
+def evaluate_game_result(player_choice, ai_choice):
     if player_choice == ai_choice:
         return "Draw"
     elif (player_choice == "Rock" and ai_choice == "Scissors") or \
-         (player_choice == "Scissors" and ai_choice == "Paper") or \
-         (player_choice == "Paper" and ai_choice == "Rock"):
-        return "You Win!"
+         (player_choice == "Paper" and ai_choice == "Rock") or \
+         (player_choice == "Scissors" and ai_choice == "Paper"):
+        return "Win"
     else:
-        return "You Lose!"
+        return "Lose"
 
-# Function to generate AI's choice
-def ai_select():
-    return random.choice(["Rock", "Paper", "Scissors"])
-
-# Function to handle user choice
-def user_choice(choice):
-    ai_choice = ai_select()
-    result = determine_winner(choice, ai_choice)
-
-    # Update GUI with choices and result
-    player_choice_label.config(text=f"Your Choice: {choice}")
+# Function to update the display with results
+def update_display(player_choice, ai_choice, result):
+    player_choice_label.config(text=f"Your Choice: {player_choice}")
     ai_choice_label.config(text=f"AI Choice: {ai_choice}")
     result_label.config(text=f"Result: {result}")
 
+    if result == "Win":
+        result_label.config(fg="green")
+    elif result == "Lose":
+        result_label.config(fg="red")
+    else:
+        result_label.config(fg="yellow")
+
+# Function to handle player's choice
+def on_choice_selected(choice):
+    ai_choice = random.choice(["Rock", "Paper", "Scissors"])
+    game_result = evaluate_game_result(choice, ai_choice)
+    update_display(choice, ai_choice, game_result)
+
 # Function to reset the game
 def reset_game():
-    player_choice_label.config(text="Your Choice: ")
-    ai_choice_label.config(text="AI Choice: ")
-    result_label.config(text="Result: ")
+    player_choice_label.config(text="Your Choice: None")
+    ai_choice_label.config(text="AI Choice: None")
+    result_label.config(text="Result: Awaiting...", fg="black")
 
-# Main function to initialize the GUI
-def main():
-    global root, player_choice_label, ai_choice_label, result_label
+# Function to exit the game
+def exit_game():
+    root.destroy()
 
-    # Create the main window
-    root = tk.Tk()
-    root.title("Rock-Paper-Scissors Game")
+# Create the main window
+root = tk.Tk()
+root.title("Rock-Paper-Scissors")
+root.geometry("600x400")
 
-    # Create choice buttons and bind to user_choice function
-    rock_button = tk.Button(root, text="Rock", command=lambda: user_choice("Rock"))
-    rock_button.pack(pady=10)
+# Title label
+title_label = tk.Label(root, text="Rock-Paper-Scissors", font=("Arial", 24))
+title_label.pack(pady=20)
 
-    paper_button = tk.Button(root, text="Paper", command=lambda: user_choice("Paper"))
-    paper_button.pack(pady=10)
+# Player choice buttons
+button_frame = tk.Frame(root)
+button_frame.pack(pady=10)
 
-    scissors_button = tk.Button(root, text="Scissors", command=lambda: user_choice("Scissors"))
-    scissors_button.pack(pady=10)
+rock_button = tk.Button(button_frame, text="Rock", command=lambda: on_choice_selected("Rock"), width=10)
+paper_button = tk.Button(button_frame, text="Paper", command=lambda: on_choice_selected("Paper"), width=10)
+scissors_button = tk.Button(button_frame, text="Scissors", command=lambda: on_choice_selected("Scissors"), width=10)
 
-    # Create labels for displaying player choice, AI choice, and result
-    player_choice_label = tk.Label(root, text="Your Choice: ")
-    player_choice_label.pack(pady=5)
+rock_button.pack(side=tk.LEFT, padx=10)
+paper_button.pack(side=tk.LEFT, padx=10)
+scissors_button.pack(side=tk.LEFT, padx=10)
 
-    ai_choice_label = tk.Label(root, text="AI Choice: ")
-    ai_choice_label.pack(pady=5)
+# Display labels
+player_choice_label = tk.Label(root, text="Your Choice: None", font=("Arial", 20))
+player_choice_label.pack(pady=10)
 
-    result_label = tk.Label(root, text="Result: ")
-    result_label.pack(pady=5)
+ai_choice_label = tk.Label(root, text="AI Choice: None", font=("Arial", 20))
+ai_choice_label.pack(pady=10)
 
-    # Create a reset button
-    reset_button = tk.Button(root, text="Reset Game", command=reset_game)
-    reset_button.pack(pady=20)
+result_label = tk.Label(root, text="Result: Awaiting...", font=("Arial", 24))
+result_label.pack(pady=10)
 
-    # Start the main loop
-    root.mainloop()
+# Play Again and Exit buttons
+play_again_button = tk.Button(root, text="Play Again", command=reset_game, width=10)
+exit_button = tk.Button(root, text="Exit", command=exit_game, width=10)
 
-if __name__ == "__main__":
-    main()
+play_again_button.pack(side=tk.LEFT, padx=20, pady=20)
+exit_button.pack(side=tk.RIGHT, padx=20, pady=20)
+
+# Start the GUI loop
+root.mainloop()
 '''
 
 task_obj = '''
@@ -84,10 +96,11 @@ Develop a Rock-Paper-Scissors game with a graphical user interface (GUI) in Pyth
 
 async def main():
     python_validator = pythonValidator()
-    result, status, test_code = await python_validator.validate(task_obj, python_code, '')
+    result, status, test_code, runresult = await python_validator.validate(task_obj, python_code, '')
     print(result)
     print(status)
     print(test_code)
+    print(f'runresult: {runresult}')
 
 if __name__ == "__main__":
     asyncio.run(main())

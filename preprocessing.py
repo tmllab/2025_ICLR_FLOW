@@ -2,6 +2,8 @@ import json
 from collections import defaultdict
 from workflow import Task, Workflow
 from history import History
+import ast
+import astor
 
 
 # read json
@@ -55,3 +57,23 @@ def process_context(context: str):
         tasks[f'task{i}'] = Task(**task_info)
     
     return Workflow(tasks)
+
+def extract_functions(code):
+    """
+    Extracts function definitions from a code string and generates a new code string containing only the functions.
+    """
+    # Parse the code into an AST
+    tree = ast.parse(code)
+
+    # Traverse the AST to extract function definitions
+    functions = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            functions.append(node)
+
+    # Create a new AST containing only the extracted functions
+    new_tree = ast.Module(body=functions, type_ignores=[])
+
+    # Convert the AST back into a code string
+    new_code = astor.to_source(new_tree)
+    return new_code
