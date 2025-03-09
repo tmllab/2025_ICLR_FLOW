@@ -60,6 +60,9 @@ class pythonValidator:
         print('------Run pythonValidator.validate()------')
 
         test_code = await self.generate_test_function(task_obj, result, history)
+
+        ### TODO result_for_test = comment_out_non_functions_and_imports(result), 
+        # and concat result_for_test with test_code  ....
         runresult = await self.execute_python_code(test_code)
 
         # Logging execution result for debugging
@@ -95,18 +98,18 @@ class pythonValidator:
 
 
         user_content = f"""
-            ## Current Task Requirement:
-            {task_obj}
+## Current Task Requirement:
+{task_obj}
 
-            ---
+---
 
-            ## Current Task change History:
-            {history}
+## Current Task change History:
+{history}
 
-            ---
+---
 
-            ## Current Task Latest Result:
-            {result}
+## Current Task Latest Result:
+{result}
         """
 
         messages_exe = [
@@ -136,7 +139,6 @@ class pythonValidator:
             str: The execution output or error message.
         """
         print('------Run pythonValidator.execute_python_code------')
-
         # Redirect stdout
         origin_stdout = sys.stdout
         sys.stdout = io.StringIO()
@@ -189,4 +191,4 @@ class pythonValidator:
             return False
         else:
             return True
-    
+

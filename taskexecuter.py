@@ -127,32 +127,31 @@ class taskExecuter:
             better results.
         """
         user_content = f"""
-            ## You need to further refine the subtask results based on following information
+## You need to further refine the subtask results based on following information
 
 
-            ## Context from Parent Tasks:
-            {context}
+## Context from Parent Tasks:
+{context}
 
-            ---
+---
 
-            ##Child Tasks objectives:
-            {next_objective}
+##Child Tasks objectives:
+{next_objective}
 
-            ---
+---
 
-            ## The Overall Goal:
-            {self.overall_task}
+## The Overall Goal:
+{self.overall_task}
 
-            ---
+---
 
-            ## current task Requirement:
-            {subtask}
+## current task Requirement:
+{subtask}
 
-            ---
+---
 
-            ## current task Change History:
-            {history}
-
+## current task Change History:
+{history}
         """
         
 
