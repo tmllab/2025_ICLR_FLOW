@@ -1,7 +1,7 @@
 from pythonvalidator import pythonValidator
 import asyncio
 
-python_code = '''python
+python_code = '''
 import tkinter as tk
 import random
 
@@ -84,6 +84,7 @@ play_again_button.pack(side=tk.LEFT, padx=20, pady=20)
 exit_button.pack(side=tk.RIGHT, padx=20, pady=20)
 
 # Start the GUI loop
+
 root.mainloop()
 '''
 
@@ -96,11 +97,8 @@ Develop a Rock-Paper-Scissors game with a graphical user interface (GUI) in Pyth
 
 async def main():
     python_validator = pythonValidator()
-    result, status, test_code, runresult = await python_validator.validate(task_obj, python_code, '')
-    print(result)
-    print(status)
-    print(test_code)
-    print(f'runresult: {runresult}')
+    result, status= await python_validator.validate(task_obj, python_code, '')
+    print(f'runresult: {result}')
 
 if __name__ == "__main__":
     asyncio.run(main())

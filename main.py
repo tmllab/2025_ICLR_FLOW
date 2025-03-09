@@ -51,17 +51,18 @@ def main():
     # 2). for each reinforcement learning algorithms, the slide should include motivation, problem and intuitive solution and detailed math equations.
     # 3). Please make sure the the lecture have a good self-contain.
     # '''
-    # overall_task: str = '''Develop a Tetris game with a graphical user interface (GUI) in Python. 
-    #     The game should allow players to manipulate falling tetrominoes by rotating and moving them horizontally. 
-    #     The objective is to create complete horizontal lines, which will then disappear, earning points for the player. 
-    #     The UI should display the current score, the next tetromino, and provide an engaging and user-friendly experience.
-    #     The program should be able to run without any additional files.
-    #     '''
-
-    overall_task: str = '''Develop a Rock-Paper-Scissors game with a graphical user interface (GUI) in Python. 
-    The game should allow a player to compete against a naive AI that randomly selects Rock, Paper, or Scissors. 
-    The UI should display the player's choice, the AI's choice, and the game result (win, lose, or draw). 
-    Provide an interactive and user-friendly experience.'''
+    overall_task: str = '''Develop a Tetris game with a graphical user interface (GUI) in Python. 
+        Tetrominoes falls automatically
+        All code in one py file.
+        The game should allow players to manipulate falling tetrominoes by rotating and moving them horizontally. 
+        The objective is to create complete horizontal lines, which will then disappear, earning points for the player. 
+        The UI should display the current score, the next tetromino.
+        '''
+    # overall_task: str = '''Develop a Snake game with a graphical user interface (GUI) in Python.'''
+    # overall_task: str = '''Develop a Rock-Paper-Scissors game with a graphical user interface (GUI) in Python. 
+    # The game should allow a player to compete against a naive AI that randomly selects Rock, Paper, or Scissors. 
+    # The UI should display the player's choice, the AI's choice, and the game result (win, lose, or draw). 
+    # Provide an interactive and user-friendly experience.'''
     
     # Record the whole validation process in a new overall task, following the previous one
     with open('validate_log.json', 'a', encoding='utf-8') as file:
@@ -69,7 +70,7 @@ def main():
 
     start_time = time.time()
 
-    manager = Flow(overall_task = overall_task, refine_threhold = 3, max_refine_itt = 5, n_candidate_graphs=3,workflow=None,max_validation_itt=4)
+    manager = Flow(overall_task = overall_task, refine_threhold = 3, max_refine_itt = 5, n_candidate_graphs=5,workflow=None,max_validation_itt=6)
     asyncio.run(manager.run_async())
 
     elapsed_time = time.time() - start_time

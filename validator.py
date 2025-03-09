@@ -54,12 +54,18 @@ class Validator:
         """
         print('------Run Validator.validate()------')
         # judge whether the result contains python code
-        
-        if '```python' in result:
-            is_python_code = await self.pythonval.is_python_code(result,task_obj)
+        temp = result.lstrip()
+        import re
+    # Check for either '''python or ```python at the start
+        is_py = bool(re.match(r"^(['`]{3})python", temp))
+
+        if '```python' in result and is_py:
+            is_python_code = await self.pythonval.need_validate(result,task_obj)
             if is_python_code:
                 # if the result contains python code
                 return await self.pythonval.validate(task_obj, result, history)
+            else:
+                return await self.textval.validate(task_obj, result, history)
         else:
             # if the result not contains python code
             return await self.textval.validate(task_obj, result, history)

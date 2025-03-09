@@ -1,26 +1,88 @@
 
+
+INIT_TEMPLATE = """{
+  "subtasks": [
+    {
+      "id": 0,
+      "objective": "..."
+    },
+    {
+      "id": 1,
+      "objective": "..."
+    },
+    {
+      "id": 2,
+      "objective": "..."
+    },
+    {
+      "id": 3,
+      "objective": "..."
+    },
+    {
+      "id": 4,
+      "objective": "..."
+    }
+  ],
+  "subtask_dependencies": [
+    { "parent": 0, "child": 1 },
+    { "parent": 0, "child": 2 },
+    { "parent": 1, "child": 3 },
+    { "parent": 2, "child": 3 },
+    { "parent": 3, "child": 4 }
+  ],
+  "agents": [
+    {
+      "id": "Agent 0",
+      "role": "...",
+      "subtasks": [0]
+    },
+    {
+      "id": "Agent 1",
+      "role": "...",
+      "subtasks": [1]
+    },
+    {
+      "id": "Agent 2",
+      "role": "...",
+      "subtasks": [2]
+    },
+    {
+      "id": "Agent 3",
+      "role": "...",
+      "subtasks": [3]
+    },
+    {
+      "id": "Agent 4",
+      "role": "...",
+      "subtasks": [4]
+    }
+  ]
+}
+
+"""
+
 INIT_WORKFLOW_TEMPLATE = """{
   "task": "Develop an AI Chatbot with Web Integration",
   "subtasks": [
     {
       "id": 0,
-      "objective": "Design the overall system architecture for the AI chatbot and web integration. Provide a detailed, self-contained description of the system components including AI processing, natural language understanding, dialogue management, and web interface. Keep the breakdown minimal to reduce integration risks."
+      "objective": "Design the overall system architecture for the AI chatbot and web integration."
     },
     {
       "id": 1,
-      "objective": "Develop the core AI and NLP module that processes user inputs and generates responses. Describe the algorithms, data flow, and internal logic in a detailed and self-contained manner without relying on external deliverable assurances."
+      "objective": "Develop the core AI and NLP module that processes user inputs and generates responses."
     },
     {
       "id": 2,
-      "objective": "Implement the web integration layer and user interface that enables interaction with the chatbot. Provide a detailed, self-contained description of the UI design, interactive elements, and communication mechanisms with backend services while maintaining simplicity to avoid complex dependencies."
+      "objective": "Implement the web integration layer and user interface that enables interaction with the chatbot."
     },
     {
       "id": 3,
-      "objective": "Integrate the AI/NLP module with the web interface to ensure smooth data exchange and consistent behavior across the system. Include a detailed, self-contained explanation of integration methods and risk mitigation strategies to address potential issues from concurrent development."
+      "objective": "Integrate the AI/NLP module with the web interface to ensure smooth data exchange and consistent behavior across the system."
     },
     {
       "id": 4,
-      "objective": "Deploy the integrated system and set up monitoring protocols to ensure reliability and performance. Provide a detailed, self-contained description of the deployment process and monitoring setup, focusing on reducing risks associated with complex interactions."
+      "objective": "Deploy the integrated system and set up monitoring protocols to ensure reliability and performance."
     }
   ],
   "subtask_dependencies": [
@@ -91,7 +153,7 @@ You are a workflow planner. Your objective is to break down a specified overall 
   2. Do Not Repeat the Example:
   Do not repeat any provided example verbatim. Use it only as a reference for the required format and structure.
 
-## Below is an Output Template:
+## Below is an Output Format Template:
 ```json
 {INIT_WORKFLOW_TEMPLATE}
 ```
@@ -253,11 +315,12 @@ Your response will be practically implemented for verification.
 
 # Output Format & Example
 - Output should only contains test code.
-- Example:
-Here is the input:
+- EXAMPLE INPUT:
 {TESTCODE_EXAMPLE}
-Here is the test code:
+---
+OUTPUT FORMAT:
 {TESTCODE_GENERATION_EXAMPLE}
+---
 '''
 
 TEXT_VALIDATION_PROMPT = f'''

@@ -57,6 +57,34 @@ def process_context(context: str):
         tasks[f'task{i}'] = Task(**task_info)
     
     return Workflow(tasks)
+def extract_funcs_var(code):
+    """
+    Extracts function definitions, import statements, and relevant global variables 
+    from a code string and generates a new code string containing only these elements.
+    """
+    print(code)
+    print("==========================")
+    # Parse the code into an AST
+    tree = ast.parse(code)
+
+    # Collect functions, imports, and global assignments
+    selected_nodes = []
+    global_vars = set()
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Import, ast.ImportFrom)):
+            selected_nodes.append(node)
+        elif isinstance(node, ast.Assign):  # Detect global assignments
+            if all(isinstance(target, ast.Name) for target in node.targets):  # Ensure valid variable names
+                global_vars.update(target.id for target in node.targets)
+                selected_nodes.append(node)
+
+    # Create a new AST containing only the selected elements
+    new_tree = ast.Module(body=selected_nodes, type_ignores=[])
+
+    # Convert the AST back into a code string
+    new_code = astor.to_source(new_tree)
+    return new_code
 
 def extract_functions(code):
     """
@@ -68,7 +96,7 @@ def extract_functions(code):
     # Traverse the AST to extract function definitions
     functions = []
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Import, ast.ImportFrom)):
             functions.append(node)
 
     # Create a new AST containing only the extracted functions
@@ -76,4 +104,5 @@ def extract_functions(code):
 
     # Convert the AST back into a code string
     new_code = astor.to_source(new_tree)
+    print(new_code)
     return new_code

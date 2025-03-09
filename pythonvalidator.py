@@ -38,7 +38,80 @@ class pythonValidator:
         )
         self.generate_test_prompt = prompt.TESTCODE_GENERATION_PROMPT
         self.check_python_prompt = prompt.IS_PYTHON_PROMPT
-        
+
+
+    async def check_windows(self, result) -> str:
+        """
+        check if
+        """
+       
+
+        user_content = f"""
+You are a precise and detail-oriented code-analysis assistant. Your task is to analyze the given Python code and extract **only** the lines that create or trigger new UI windows, dialogs, alerts, or interactive popups.
+
+### **Instructions:**
+1. Identify any lines that **actively display UI elements** such as:
+   - **Message boxes, alerts, and dialogs** (e.g., `tkinter.messagebox.showinfo`, `showwarning`, `showerror`, `askquestion`, `askokcancel`, `askyesno`, `askretrycancel`)
+   - **New windows that actively appear on the screen** (e.g., `tk.Toplevel()`, `QDialog.exec_()`, `wx.Dialog.ShowModal()`)
+   - **Blocking UI elements** (e.g., `root.mainloop()`, `plt.show()`, `some_window.show()`, `some_dialog.exec_()`)
+
+2. **Exclude** lines that merely **initialize** a window or object **without** displaying it, such as:
+   - `root = tk.Tk()` (which only creates a window but does not start interaction)
+   - `app = QApplication(sys.argv)` (which initializes the app but does not show a UI)
+   - `figure = plt.figure()` (which creates but does not display a figure)
+
+3. **Output only the exact lines of code that match the criteria.**  
+   - Do **not** include any explanations, reasoning, or extra text.  
+   - Do **not** reformat or modify the extracted lines.  
+   - If multiple lines are detected, return them in the same order as they appear in the original code.
+
+4. **If no such lines exist, output only an empty string (`""`).**
+
+{result}
+        """
+
+        messages_exe = [
+            {'role': 'user', 'content': user_content}
+        ]
+
+        popup = await self.gpt_client.a_chat_completion(messages_exe, temperature=Config.TEMPERATURE)
+        popup = popup.strip('```python').strip('```')
+
+        return popup
+    
+
+
+
+    def comment_out(self, original_code: str, llm_output: str) -> str:
+        """
+        Takes the original code and the LLM's output (lines to be commented out).
+        Returns the modified code where the specified lines are commented.
+
+        Parameters:
+        - original_code (str): The full source code.
+        - llm_output (str): The exact lines that need to be commented.
+
+        Returns:
+        - str: The modified code with the specified lines commented.
+        """
+        # Convert code into a list of lines
+        code_lines = original_code.splitlines(keepends=True)
+
+        # Convert LLM output into a set of stripped lines (to ignore whitespace mismatches)
+        lines_to_comment = set(line.strip() for line in llm_output.splitlines() if line.strip())
+
+        # Iterate through the code and comment out matching lines
+        modified_lines = []
+        for line in code_lines:
+            stripped_line = line.strip()
+            if stripped_line in lines_to_comment:
+                modified_lines.append("# " + line)  # Prepend "#" while preserving indentation
+            else:
+                modified_lines.append(line)
+
+        return "".join(modified_lines)
+
+
     async def validate(self, task_obj, result, history) -> tuple[str, str]:
         """
         Validate Python code by generating and executing test code.
@@ -58,13 +131,14 @@ class pythonValidator:
                            status can be 'completed' or 'failed'.
                            error_message is None if validation succeeds.
         """
-        print('------Run pythonValidator.validate()------')
+        result = result.strip('```python').strip('```')
+        pops = await self.check_windows(result)
+        code_for_test= self.comment_out(result, pops)
+        test_funtions = await self.generate_test_function(task_obj, code_for_test, history)
 
-        test_code = await self.generate_test_function(task_obj, result, history)
-
-        result_for_test = preprocessing.extract_functions(result)
         # and concat result_for_test with test_code  ....
-        test_code = result_for_test + test_code
+        test_code = code_for_test + "\n"+test_funtions
+
         runresult = await self.execute_python_code(test_code)
 
         # Logging execution result for debugging
@@ -76,10 +150,10 @@ class pythonValidator:
 
         if 'Error executing code:' not in runresult:
             print('***Python code with no bugs***')
-            return None, 'completed', test_code, runresult
+            return None, 'completed'
         else:
             print('***Python code with bugs***')
-            return runresult, 'failed', test_code, runresult
+            return "###testcode: "+ test_funtions+"\n ### test result:"+ runresult, 'failed'
     
     async def generate_test_function(self, task_obj, result, history) -> str:
         """
@@ -96,8 +170,7 @@ class pythonValidator:
         Note:
             The generated test code is stripped of Python markdown formatting.
         """
-        print('------Run pythonValidator.generate_test_function()------')
-
+       
 
         user_content = f"""
 ## Current Task Requirement:
@@ -158,30 +231,38 @@ class pythonValidator:
         
         return output
     
-    async def is_python_code(self, result, task_obj) -> bool:
+    async def need_validate(self, result, task_obj) -> bool:
         """
-        Check if the given result contains executable Python code.
-
-        Args:
-            result (str): The content to check for Python code.
-            task_obj: The task object providing context for the check.
-
-        Returns:
-            bool: True if the content contains executable Python code, False otherwise.
-
-        Note:
-            This method uses GPT to analyze the content and determine if it's
-            valid Python code that should be executed.
         """
         print('------Run pythonValidator.is_python_code()------')
         ##TODO check if the result need to be runned based on task_obj, 
         # it is possible that the code is just for explaination  
         user_content = f'''
-            Here is the result: {result}
+You are an expert Python evaluator. Your task is to determine whether 
+the provided Python code should be **unit tested** based on the task objective 
+and its generated result.
+
+### **Instructions:**
+- If the task objective specifies generating a **program or executable logic** for future use, 
+and the result contains **functional Python code (e.g., functions, classes, or logic meant for execution)**,  
+**return `Y`**.
+- If the task objective is **purely educational, explanatory, or illustrative**, 
+and the result contains a **non-functional snippet meant only for explanation**,  
+**return `N`**.
+- If the result contains **incomplete code, pseudocode, or non-executable elements**,  
+**return `N`**.
+- **Do not include any explanations or additional text.**  
+Your response must be strictly either `Y` or `N`.
+
+### **Task Objective:**
+{task_obj}
+
+    ----
+### **Generated Python Code:**
+{result}
         '''
         
         messages = [
-            {'role': 'system', 'content': self.check_python_prompt},
             {'role': 'user', 'content': user_content}
         ]
         print(user_content)

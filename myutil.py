@@ -1,4 +1,26 @@
 import ast
+import astor
+
+def extract_functions(code):
+    """
+    Extracts function definitions from a code string and generates a new code string containing only the functions.
+    """
+    # Parse the code into an AST
+    tree = ast.parse(code)
+
+    # Traverse the AST to extract function definitions
+    functions = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Import, ast.ImportFrom)):
+            functions.append(node)
+
+    # Create a new AST containing only the extracted functions
+    new_tree = ast.Module(body=functions, type_ignores=[])
+
+    # Convert the AST back into a code string
+    new_code = astor.to_source(new_tree)
+    print(new_code)
+    return new_code
 
 def comment_out_non_functions_and_imports(code: str) -> str:
     """
@@ -126,5 +148,5 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())'''
     
-    processed_code = comment_out_non_functions_and_imports(sample_code)
+    processed_code = extract_functions(sample_code)
     print(processed_code)

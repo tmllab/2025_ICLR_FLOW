@@ -91,7 +91,7 @@ class taskExecuter:
             "1. Solve only your assigned subtask, referring to the context only if necessary.\n"
             "2. Ensure your solution aligns with the overall goal and is formatted so that it can be directly used as input for downstream tasks.\n"
             "3. Do not repeat any previous output verbatim.\n"
-            "4. Only output essential result, do not do any justification."
+            "4. Output required result without adding any justifications."
         )
 
         messages = [
@@ -129,7 +129,7 @@ class taskExecuter:
         """
         user_content = f"""
 ## You need to further refine the subtask results based on following information. Only output essential result, do not do any justification.
-
+Output required result without adding any justifications.
 
 ## Context from Parent Tasks:
 {context}
