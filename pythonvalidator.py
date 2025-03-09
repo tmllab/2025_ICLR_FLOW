@@ -38,7 +38,7 @@ class pythonValidator:
         self.generate_test_prompt = prompt.TESTCODE_GENERATION_PROMPT
         self.check_python_prompt = prompt.IS_PYTHON_PROMPT
         
-    async def validate(self, task_obj, result) -> tuple[str, str]:
+    async def validate(self, task_obj, result, history) -> tuple[str, str]:
         """
         Validate Python code by generating and executing test code.
 
@@ -59,7 +59,7 @@ class pythonValidator:
         """
         print('------Run pythonValidator.validate()------')
 
-        test_code = await self.generate_test_function(task_obj, result)
+        test_code = await self.generate_test_function(task_obj, result, history)
         runresult = await self.execute_python_code(test_code)
 
         # Logging execution result for debugging
@@ -71,18 +71,19 @@ class pythonValidator:
 
         if 'Error executing code:' not in runresult:
             print('***Python code with no bugs***')
-            return None, 'completed'
+            return None, 'completed', test_code
         else:
             print('***Python code with bugs***')
-            return runresult, 'failed'
+            return runresult, 'failed', test_code
     
-    async def generate_test_function(self, task_obj, result) -> str:
+    async def generate_test_function(self, task_obj, result, history) -> str:
         """
         Generate test code for validating Python code execution.
 
         Args:
             task_obj: The task object containing test requirements.
             result (str): The Python code to test.
+            history (str): The history of the task.
 
         Returns:
             str: Generated test code that validates the result.
@@ -92,10 +93,21 @@ class pythonValidator:
         """
         print('------Run pythonValidator.generate_test_function()------')
 
-        user_content = f'''
-            Here is the task object: {task_obj}
-            Here is the result: {result}
-        '''
+
+        user_content = f"""
+            ## Current Task Requirement:
+            {task_obj}
+
+            ---
+
+            ## Current Task change History:
+            {history}
+
+            ---
+
+            ## Current Task Latest Result:
+            {result}
+        """
 
         messages_exe = [
             {'role': 'system', 'content': self.generate_test_prompt},

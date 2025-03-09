@@ -161,17 +161,23 @@ You need to check if the content contains Python code that is **executable and m
 
 # Objective and Steps
 - Consider the code meaningful if it:
-  - Defines functions, classes, or logic that performs computations or produces outputs.
-  - Contains conditions, loops, or data manipulation that can be verified through test cases.
+  - Defines functions, classes, or logic that performs computations, produces outputs, or manipulates data in a testable manner.
+  - Contains conditions, loops, or logic that demonstrates purposeful behavior.
+  - Includes executable statements that contribute to functionality (e.g., function calls, print statements for output, etc.).
 
 - Consider the code NOT meaningful if it:
-  - Only defines constants, variables, or data structures without functionality.
-  - Lacks executable logic (e.g., pure imports or comments only).
+  - Only defines constants, variables, or data structures without any logic or operations.
+  - Contains only comments, imports, or passive declarations without active computation or output.
+
+# Additional Guidance
+- Code that includes partial logic (e.g., incomplete functions with intended logic) can still be meaningful if its purpose is clear.
+- Minor syntax errors should not automatically classify the code as non-meaningful unless they make the entire logic unexecutable.
 
 # Response Format
 - Respond ONLY with "Y" if the code is executable and meaningful for testing.
 - Respond ONLY with "N" if no such code is present.
 '''
+
 
 TESTCODE_GENERATION_EXAMPLE = '''
 def add(a, b):
@@ -216,35 +222,38 @@ TESTCODE_GENERATION_PROMPT = f'''
 You are a test code generator responsible for creating comprehensive test cases for Python code: [RESULT].
 
 # Content
-You will get the input:
-[SUBTASK]: A clear description of the task to be completed  
-[RESULT]: The Python code that needs to be tested
+You will get the input:  
+**[SUBTASK]**: A clear description of the task to be completed  
+**[RESULT]**: The Python code that needs to be tested  
 
 # Objective and Steps
 Your objective is to generate structured test cases that verify the functionality of the provided code: [RESULT], while considering the goal of the task: [SUBTASK].
 
 Follow these steps strictly for test creation:
-1. **Function Analysis:**
-   - Identify input parameters and return types.
-   - Understand the expected behavior.
-   - Determine edge cases and boundary conditions.
-   - Consider the task objective; ensure that the tests align with the overall goal defined in [SUBTASK].
-   - **Check if the provided code is meaningful for testing.** Skip test generation if the code only defines constants, simple data structures, or unused functions.
 
-2. **Test Case Design:**
-   - Create test cases for normal operation.
-   - Include edge cases (e.g., empty inputs, boundary values).
-   - Consider error conditions and invalid inputs.
+### 1. **Function Analysis**
+- Identify input parameters and return types.
+- Understand the expected behavior.
+- Determine edge cases and boundary conditions.
+- Consider the task objective; ensure that the tests align with the overall goal defined in [SUBTASK].
+- **Check if the provided code is meaningful for testing.** Skip test generation if the code only defines constants, simple data structures, or unused functions.
 
-3. **Test Structure Requirements:**
-   - Each test must be wrapped in try/except for assertion errors.
-   - Tests must be independent and self-contained.
-   - Clear error messages must be provided for failures.
-   - All test results must be collected and reported.
-   - Ensure the test code checks for `__main__` to avoid unexpected execution in GUI environments.
+### 2. **Test Case Design**
+- Create test cases for normal operation.
+- Include edge cases (e.g., empty inputs, boundary values).
+- Consider error conditions and invalid inputs.
+
+### 3. **Test Structure Requirements**
+- Each test must be wrapped in `try/except` for assertion errors.
+- Tests must be independent and self-contained.
+- Clear error messages must be provided for failures.
+- All test results must be collected and reported.
+- Ensure the test code checks for `__main__` to avoid unexpected execution in GUI environments.
+- **If the provided code includes GUI components, mock GUI dependencies to prevent pop-up windows or graphical interactions during test execution.** Utilize libraries like `unittest.mock` or appropriate stubbing techniques to bypass GUI-related elements.
 
 # Audience
 Your response will be practically implemented for verification.
+
 
 # Output Format & Example
 - Output should be code only without description and explanation  
