@@ -146,14 +146,13 @@ You are a precise and detail-oriented code-analysis assistant. Your task is to a
             file.write('----------\nGOT PYTHON VALIDATION\n----------')
             json.dump({'task_obj': task_obj, 'result': result, 'testcode': test_code, 'runresult': runresult}, file, indent=4)
 
-        print(f'***runresult is: {runresult}***')
 
         if 'Error executing code:' not in runresult:
             print('***Python code with no bugs***')
             return None, 'completed'
         else:
             print('***Python code with bugs***')
-            return "###testcode: "+ test_funtions+"\n ### test result:"+ runresult, 'failed'
+            return "###below are some unit tests: \n ```python"+ test_funtions+"``` ### tests results are as follows: \n"+ runresult, 'failed'
     
     async def generate_test_function(self, task_obj, result, history) -> str:
         """
@@ -265,10 +264,10 @@ Your response must be strictly either `Y` or `N`.
         messages = [
             {'role': 'user', 'content': user_content}
         ]
-        print(user_content)
+     
         
         feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
-        print('------Is Python Code?:------', feedback)
+       
         
         if feedback == "N":
             return False

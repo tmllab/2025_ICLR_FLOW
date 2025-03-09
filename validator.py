@@ -63,10 +63,14 @@ class Validator:
             is_python_code = await self.pythonval.need_validate(result,task_obj)
             if is_python_code:
                 # if the result contains python code
-                return await self.pythonval.validate(task_obj, result, history)
-            else:
-                return await self.textval.validate(task_obj, result, history)
-        else:
+                unit_test_result, new_status = await self.pythonval.validate(task_obj, result, history)
+
+                result += "\n"+unit_test_result
+        #     else:
+        #         return await self.textval.validate(task_obj, result, history)
+        # else:
             # if the result not contains python code
-            return await self.textval.validate(task_obj, result, history)
+        print(result)
+        print("+++++++++++++++++++++++++++")
+        return await self.textval.validate(task_obj, result, history)
         
