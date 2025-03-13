@@ -117,23 +117,15 @@ class Flow:
             logger.info(f"Task {task_id} completed; skipping.")
             return
 
-        try:
-            # Build context from successfully completed (status == 'completed') dependencies
-
-            # Execute task with the runner and set status = 'completed' or 'failed'
-            result = await self.runner.execute(self.workflow, task_id)
+      
+        # Execute task with the runner and set status = 'completed' or 'failed'
+        result = await self.runner.execute(self.workflow, task_id)
 
 
-            # Logging execution result for debugging
-            with open('execute_log.json', 'a', encoding='utf-8') as file:
-                json.dump({task_id: result}, file, indent=4)
+        # Logging execution result for debugging
+        with open('execute_log.json', 'a', encoding='utf-8') as file:
+            json.dump({task_id: result}, file, indent=4)
 
-        except asyncio.CancelledError:
-            logger.info(f"Task {task_id} was cancelled.")
-            raise
-        except Exception as e:
-            logger.error(f"Task {task_id} encountered error: {e}")
-            raise
 
     def task_cancelled_callback(self, task_id: str):
         """

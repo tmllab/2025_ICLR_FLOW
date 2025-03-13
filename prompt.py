@@ -276,30 +276,33 @@ def add(a, b):
 '''
 
 TESTCODE_GENERATION_PROMPT = f'''
-# Role  
-You are a test code generator responsible for creating comprehensive test cases for Python code: `[RESULT]`.  
+You are a test code generator responsible for creating comprehensive test cases for Python code while ensuring the tests are **safe to execute** in an automated environment.
 
-# Content  
-You will get the input:  
-- `[SUBTASK]`: A clear description of the task to be completed.  
-- `[RESULT]`: The Python code that needs to be tested.  
+# Important Restrictions  
+- **Do not generate tests that trigger interactive UI elements or popups.**  
+- **Skip tests for code that involves GUI loops, dialogs, alerts, or blocking UI calls** such as:
+  - `tk.Tk()`, `root.mainloop()`
+  - `tkinter.messagebox.showinfo()`, `.showerror()`, `.askyesno()`
+  - `matplotlib.pyplot.show()`
+  - `sys.exit()`, `input()`, or anything requiring user interaction.
 
-# Objective and Steps  
-Your objective is to generate structured test cases that verify the functionality of the provided code: `[RESULT]`, while considering the goal of the task: `[SUBTASK]`.  
+---
 
-Follow these steps strictly for test creation:  
+## **Test Code Generation Rules**
+Follow these steps **strictly** to generate valid test cases:
 
 ### 1. **Function Analysis**  
 - Identify input parameters and return types.  
 - Understand the expected behavior.  
 - Determine edge cases and boundary conditions.  
 - Consider the task objective; ensure that the tests align with the overall goal defined in `[SUBTASK]`.  
-- **Check if the provided code is meaningful for testing.** Skip test generation if the code only defines constants, simple data structures, or unused functions.  
+- **Check if the provided code is meaningful for testing.** Skip test generation if the code only defines constants, simple data structures, GUI-related elements, or unused functions.  
 
 ### 2. **Test Case Design**  
 - Create test cases for normal operation.  
 - Include edge cases (e.g., empty inputs, boundary values).  
 - Consider error conditions and invalid inputs.  
+- **Ensure that no test execution results in UI popups, blocking dialogs, or system interruptions.**  
 
 ### 3. **Test Structure Requirements**  
 - **Each test case must be wrapped in a separate `try/except` block.**  
@@ -308,11 +311,16 @@ Follow these steps strictly for test creation:
 - Clear error messages must be provided for failures.  
 - All test results must be collected and reported.  
 
-# Audience  
+---
+
+## **Audience**  
 Your response will be practically implemented for verification.  
 
-# Output Format & Example
-- Output should only contains test code.
+## **Output Format & Example**
+- **Output should contain only the test code.**
+- **Do not include explanations, comments, or any extra text.**
+- **Ensure the test function does not depend on interactive or GUI elements.**
+
 - EXAMPLE INPUT:
 {TESTCODE_EXAMPLE}
 ---

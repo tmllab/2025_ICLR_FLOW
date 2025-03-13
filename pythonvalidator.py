@@ -131,9 +131,13 @@ You are a precise and detail-oriented code-analysis assistant. Your task is to a
                            status can be 'completed' or 'failed'.
                            error_message is None if validation succeeds.
         """
+        print("********remove pops begin************")
         result = result.strip('```python').strip('```')
         pops = await self.check_windows(result)
+
         code_for_test= self.comment_out(result, pops)
+        print(code_for_test)
+        print("********remove pops end************")
         test_funtions = await self.generate_test_function(task_obj, code_for_test, history)
 
         # and concat result_for_test with test_code  ....
@@ -149,7 +153,7 @@ You are a precise and detail-oriented code-analysis assistant. Your task is to a
 
         if 'Error executing code:' not in runresult:
             print('***Python code with no bugs***')
-            return None, 'completed'
+            return "", 'completed'
         else:
             print('***Python code with bugs***')
             return "###below are some unit tests: \n ```python"+ test_funtions+"``` ### tests results are as follows: \n"+ runresult, 'failed'

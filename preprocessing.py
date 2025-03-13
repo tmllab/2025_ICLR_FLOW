@@ -62,8 +62,7 @@ def extract_funcs_var(code):
     Extracts function definitions, import statements, and relevant global variables 
     from a code string and generates a new code string containing only these elements.
     """
-    print(code)
-    print("==========================")
+
     # Parse the code into an AST
     tree = ast.parse(code)
 
@@ -104,5 +103,4 @@ def extract_functions(code):
 
     # Convert the AST back into a code string
     new_code = astor.to_source(new_tree)
-    print(new_code)
     return new_code

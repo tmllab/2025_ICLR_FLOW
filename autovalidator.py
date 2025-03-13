@@ -52,25 +52,28 @@ class Validator:
             and then confirms if the content is actually executable Python code
             before routing to the appropriate validator.
         """
-        print('------Run Validator.validate()------')
         # judge whether the result contains python code
         temp = result.lstrip()
         import re
     # Check for either '''python or ```python at the start
         is_py = bool(re.match(r"^(['`]{3})python", temp))
-
+        unit_test_result = ""
         if '```python' in result and is_py:
             is_python_code = await self.pythonval.need_validate(result,task_obj)
             if is_python_code:
                 # if the result contains python code
-                unit_test_result, new_status = await self.pythonval.validate(task_obj, result, history)
+                unit_test_result, _ = await self.pythonval.validate(task_obj, result, history)
 
                 result += "\n"+unit_test_result
         #     else:
         #         return await self.textval.validate(task_obj, result, history)
         # else:
             # if the result not contains python code
+        print("++++++++++++result to validate start +++++++++++++++")
         print(result)
-        print("+++++++++++++++++++++++++++")
-        return await self.textval.validate(task_obj, result, history)
+        print("+++++++++++++result to validate end ++++++++++++++")
+        text_validate_result, status =  await self.textval.validate(task_obj, result, history)
+        unit_test_result = unit_test_result+text_validate_result
+
+        return unit_test_result, status
         

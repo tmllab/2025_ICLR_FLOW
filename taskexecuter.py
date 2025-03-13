@@ -160,9 +160,7 @@ Output required result without adding any justifications.
             {'role': 'system', 'content': self.re_execute_prompt},
             {'role': 'user', 'content': user_content}
         ]
-        print(user_content)
         result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
 
-        if result:
-            print('------Re-execute completed------')
+
         return result

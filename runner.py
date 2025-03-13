@@ -2,7 +2,7 @@ from taskexecuter import taskExecuter
 import logging
 from config import Config
 from workflow import Workflow
-from validator import Validator
+from autovalidator import Validator
 from workflow import Task
 import prompt
  
@@ -69,7 +69,7 @@ class AsyncRunner:
         Raises:
             ValueError: If the task_id is not found in the workflow.
         """
-        print('------Run execute------')
+
         
         if task_id not in workflow.tasks:
             logger.error(f"Task '{task_id}' not found in workflow.")
@@ -83,12 +83,11 @@ class AsyncRunner:
         
         logger.info(f"Executing task '{task_objective}' with context: {context[:100]}...")
         
-        print('------Start execution loop------')
         i = 0
         result = ''
         
         while i < self.max_validation_itt:
-            print(f'------Iteration {i}, validating task {task_obj.id}------')
+
             
             if i == 0:
                 result = await self.executer.execute(task_objective, agent_id, context, next_objective)
@@ -97,13 +96,19 @@ class AsyncRunner:
             
             feedback, new_status = await self.validator.validate(task_objective, result, task_obj.get_history())
             task_obj.save_history(result, feedback)
+            print("*********result to save start**********")
+            print(result)
+            print("*********result to save end***********")
+            print("*********feedback to save start**********")
+            print(feedback)
+            print("*********feedback to save end***********")
             task_obj.set_status(new_status)
-            
+          
             if new_status == 'completed':
-                print('---Execution successful---')
+                print(task_obj.id, '---Final status:', task_obj.status)
                 break
             
             i += 1
         
-        print(task_obj.id, '---Final status:', task_obj.status)
+        
         return result

@@ -58,7 +58,6 @@ class textValidator:
             The validation is considered successful if GPT responds with 'OK'
             in a short message (less than 50 characters).
         """
-        print('------Run textValidator.validate()------')
 
         user_content = f"""
 ## Current Task Requirement:
@@ -87,7 +86,7 @@ class textValidator:
 
         
         if "OK" in feedback and len(feedback)<50:
-            return None, 'completed'
+            return "", 'completed'
         else:
             return feedback, 'failed'
     
