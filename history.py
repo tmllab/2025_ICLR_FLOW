@@ -124,9 +124,9 @@ class History:
             result, feedback = self.get_history_by_index(i)
             history.append(
                 f"{'-'*40}\n"
-                f"revision {i}:\n"
-                f"Result:\n{result}\n\n"
+                f"*REVISION {i}*\n"
                 f"Feedback:\n{feedback}\n"
+                f"Result:\n{result}\n\n"
             )
 
         history.append('-' * 40)
@@ -162,3 +162,25 @@ class History:
                 for i, entry in enumerate(self.data)
             ]
         }
+    
+
+
+def test_get_history():
+    history = History()
+    
+    # Test empty history
+    print("Empty history output:")
+    print(history.get_history())
+
+    # Add entries
+    history.save("Result 1", "Feedback 1")
+    history.save("Result 2", "Feedback 2")
+    history.save("Result 3", "Feedback 3")
+ 
+    
+    print("History output after adding entries:")
+    print(history.get_history())
+
+
+if __name__ == "__main__":
+    test_get_history()
