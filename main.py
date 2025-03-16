@@ -51,13 +51,7 @@ def main():
     # 2). for each reinforcement learning algorithms, the slide should include motivation, problem and intuitive solution and detailed math equations.
     # 3). Please make sure the the lecture have a good self-contain.
     # '''
-    overall_task: str = '''Develop a Tetris game with a graphical user interface (GUI) in Python. 
-        Tetrominoes falls automatically
-        All code in one py file.
-        The game should allow players to manipulate falling tetrominoes by rotating and moving them horizontally. 
-        The objective is to create complete horizontal lines, which will then disappear, earning points for the player. 
-        The UI should display the current score, the next tetromino.
-        '''
+    overall_task: str = '''Develop a game that fuses Tetris and Bejeweled mechanics. Falling tetrominoes should lock into a grid and transform into colored gems. The game must support both Tetris line-clearing and Bejeweled match-3 clearing, triggering chain reactions and bonus points. Include a GUI (using a framework like Pygame) that displays the game grid, current score, and next tetromino preview, along with smooth animations. No sound effects are needed        '''
     # overall_task: str = '''Develop a Snake game with a graphical user interface (GUI) in Python.'''
     # overall_task: str = '''Develop a Rock-Paper-Scissors game with a graphical user interface (GUI) in Python. 
     # The game should allow a player to compete against a naive AI that randomly selects Rock, Paper, or Scissors. 
@@ -70,7 +64,7 @@ def main():
 
     start_time = time.time()
 
-    manager = Flow(overall_task = overall_task, refine_threhold = 3, max_refine_itt = 5, n_candidate_graphs=5,workflow=None,max_validation_itt=6)
+    manager = Flow(overall_task = overall_task, refine_threhold = 3, max_refine_itt = 5, n_candidate_graphs=5,workflow=None,max_validation_itt=10)
     asyncio.run(manager.run_async())
 
     elapsed_time = time.time() - start_time

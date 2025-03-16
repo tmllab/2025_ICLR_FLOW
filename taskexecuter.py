@@ -81,25 +81,47 @@ class taskExecuter:
         """
         logger.info(f"Task '{subtask}' started by agent '{agent_id}'.")
         
-        # User prompt with context and objectives
-        user_content = (
-            f"### Context from Completed Tasks:\n{context}\n\n"
-            f"### Overall Goal:\n{self.overall_task}\n\n"
-            f"### Your Subtask:\n{subtask}\n\n"
-            f"### Subsequent Task Objectives:\n{next_objective}\n\n"
-            "Instructions:\n"
-            "1. Solve only your assigned subtask, referring to the context only if necessary.\n"
-            "2. Ensure your solution aligns with the overall goal and is formatted so that it can be directly used as input for downstream tasks.\n"
-            "3. Do not repeat any previous output verbatim.\n"
-            "4. Output required result without adding any justifications."
-        )
+        user_content = f'''
+
+"# **Instructions:**\n"
+"1. Solve only your assigned subtask, referring to the context only if necessary.\n"
+"2. Ensure your solution aligns with the overall goal and is formatted so that it can be directly used as input for downstream tasks.\n"
+"3. Do not repeat any previous output verbatim.\n"
+"4. Output required result without adding any justifications."
+"5. Strictly follow the format constraint."
+---
+
+# **The Overall Goal**
+{self.overall_task}
+
+---
+
+# **Context from Upstream Tasks**
+{context}
+
+---
+
+# **Downstream Tasks objectivesv**
+{next_objective}
+
+
+---
+
+# **Current Task Requirements**
+{subtask}
+
+---
+
+'''
 
         messages = [
             {'role': 'system', 'content': self.execute_prompt},
             {'role': 'user', 'content': user_content}
         ]
-
-        result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+        print("***********run start*********************")
+        print(user_content)
+        print("***********run end*********************")
+        result = await self.gpt_client.a_chat_completion(messages)
 
         return result
 
@@ -128,39 +150,44 @@ class taskExecuter:
             better results.
         """
         user_content = f"""
-## You need to further refine the subtask results based on following information. Only output essential result, do not do any justification.
-Output required result without adding any justifications.
-
-## Context from Parent Tasks:
-{context}
-
+"# **Instructions:**\n"
+"1. You need to revise the subtask results based on the latest feedback and historical information.\n"
+"2. Output required result without adding any justifications."
+"3. Strictly follow the format constraint."
 ---
 
-##Child Tasks objectives:
-{next_objective}
-
----
-
-## The Overall Goal:
+# **The Overall Goal**
 {self.overall_task}
 
 ---
 
-## current task Requirement:
+# **Context from Upstream Tasks**
+{context}
+
+---
+
+# **Downstream Tasks objectives**
+{next_objective}
+
+---
+
+# **Current Task Requirements**
 {subtask}
 
 ---
 
-## current task Change History:
+# **Current Task Historical Results and Their Feedbacks**
 {history}
         """
         
-
+        print("***********run start*********************")
+        print(user_content)
+        print("***********run end*********************")
         messages = [
             {'role': 'system', 'content': self.re_execute_prompt},
             {'role': 'user', 'content': user_content}
         ]
-        result = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+        result = await self.gpt_client.a_chat_completion(messages)
 
 
         return result

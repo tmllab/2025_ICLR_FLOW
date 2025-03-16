@@ -88,7 +88,6 @@ class AsyncRunner:
         
         while i < self.max_validation_itt:
 
-            
             if i == 0:
                 result = await self.executer.execute(task_objective, agent_id, context, next_objective)
             else:
@@ -96,12 +95,6 @@ class AsyncRunner:
             
             feedback, new_status = await self.validator.validate(task_objective, result, task_obj.get_history())
             task_obj.save_history(result, feedback)
-            print("*********result to save start**********")
-            print(result)
-            print("*********result to save end***********")
-            print("*********feedback to save start**********")
-            print(feedback)
-            print("*********feedback to save end***********")
             task_obj.set_status(new_status)
           
             if new_status == 'completed':

@@ -26,7 +26,7 @@ class Validator:
         self.pythonval = pythonValidator()
         self.textval = textValidator()
 
-    async def validate(self, task_obj, result, history) -> tuple[str, str]:
+    async def validate(self, task_obj, solution, history) -> tuple[str, str]:
         """
         Validate task results by determining content type and using appropriate validator.
 
@@ -53,27 +53,21 @@ class Validator:
             before routing to the appropriate validator.
         """
         # judge whether the result contains python code
-        temp = result.lstrip()
+        temp = solution.lstrip()
         import re
-    # Check for either '''python or ```python at the start
-        is_py = bool(re.match(r"^(['`]{3})python", temp))
-        unit_test_result = ""
-        if '```python' in result and is_py:
-            is_python_code = await self.pythonval.need_validate(result,task_obj)
-            if is_python_code:
-                # if the result contains python code
-                unit_test_result, _ = await self.pythonval.validate(task_obj, result, history)
+ 
+    
 
-                result += "\n"+unit_test_result
-        #     else:
-        #         return await self.textval.validate(task_obj, result, history)
-        # else:
-            # if the result not contains python code
-        print("++++++++++++result to validate start +++++++++++++++")
-        print(result)
-        print("+++++++++++++result to validate end ++++++++++++++")
-        text_validate_result, status =  await self.textval.validate(task_obj, result, history)
-        unit_test_result = unit_test_result+text_validate_result
+        is_python_code = await self.pythonval.need_validate(solution,task_obj)
+        if is_python_code:
+            # if the result contains python code
+            test_result, status = await self.pythonval.validate(task_obj, solution, history)
 
-        return unit_test_result, status
+            
+        else:
+            test_result, status =  await self.textval.validate(task_obj, solution, history)
+
+        # unit_test_result = unit_test_result+text_validate_result
+        
+        return test_result, status
         

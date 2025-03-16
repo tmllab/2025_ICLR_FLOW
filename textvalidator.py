@@ -79,14 +79,14 @@ class textValidator:
             {'role': 'user', 'content': user_content}
         ]
     
-        feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+        feedback = await self.gpt_client.a_chat_completion(messages)
         with open('validate_log.json', 'a', encoding='utf-8') as file:
             file.write('----------\nGOT TEXT VALIDATION\n----------')
             json.dump({'task_obj': task_obj, 'result': result, 'feedback': feedback}, file, indent=4)
 
         
         if "OK" in feedback and len(feedback)<50:
-            return "", 'completed'
+            return "there are no additional problems", 'completed'
         else:
             return feedback, 'failed'
     

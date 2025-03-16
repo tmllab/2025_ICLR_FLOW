@@ -1,3 +1,4 @@
+import asyncio
 from gptClient import GPTClient
 from config import Config
 import preprocessing
@@ -47,9 +48,9 @@ class pythonValidator:
        
 
         user_content = f"""
-You are a precise and detail-oriented code-analysis assistant. Your task is to analyze the given Python code and extract **only** the lines that create or trigger new UI windows, dialogs, alerts, or interactive popups.
+Analyze the given Python code and extract **only** the lines that create or trigger new UI windows, dialogs, alerts, or interactive popups.
 
-### **Instructions:**
+# **Instructions:**
 1. Identify any lines that **actively display UI elements** such as:
    - **Message boxes, alerts, and dialogs** (e.g., `tkinter.messagebox.showinfo`, `showwarning`, `showerror`, `askquestion`, `askokcancel`, `askyesno`, `askretrycancel`)
    - **New windows that actively appear on the screen** (e.g., `tk.Toplevel()`, `QDialog.exec_()`, `wx.Dialog.ShowModal()`)
@@ -70,11 +71,11 @@ You are a precise and detail-oriented code-analysis assistant. Your task is to a
 {result}
         """
 
-        messages_exe = [
+        messages = [
             {'role': 'user', 'content': user_content}
         ]
 
-        popup = await self.gpt_client.a_chat_completion(messages_exe, temperature=Config.TEMPERATURE)
+        popup = await self.gpt_client.a_chat_completion(messages)
         popup = popup.strip('```python').strip('```')
 
         return popup
@@ -132,31 +133,37 @@ You are a precise and detail-oriented code-analysis assistant. Your task is to a
                            error_message is None if validation succeeds.
         """
         print("********remove pops begin************")
-        result = result.strip('```python').strip('```')
-        pops = await self.check_windows(result)
+        code_for_test = result.strip('```python').strip('```')
+        pops = await self.check_windows(code_for_test)
 
-        code_for_test= self.comment_out(result, pops)
+        code_for_test = self.comment_out(code_for_test, pops)
         print(code_for_test)
         print("********remove pops end************")
-        test_funtions = await self.generate_test_function(task_obj, code_for_test, history)
+        unit_tests = await self.generate_test_function(task_obj, code_for_test, history)
 
         # and concat result_for_test with test_code  ....
-        test_code = code_for_test + "\n"+test_funtions
+        
+        runresult = ""
+        if len(unit_tests) > 20:
+     
+            try:
+                runresult = await asyncio.wait_for(self.execute_python_code(code_for_test + "\n"+unit_tests), timeout=15)
+            except asyncio.TimeoutError:
+                runresult = "Execution timed out after 15 seconds. It may because of popup UI prevent the test"
 
-        runresult = await self.execute_python_code(test_code)
 
         # Logging execution result for debugging
         with open('validate_log.json', 'a', encoding='utf-8') as file:
             file.write('----------\nGOT PYTHON VALIDATION\n----------')
-            json.dump({'task_obj': task_obj, 'result': result, 'testcode': test_code, 'runresult': runresult}, file, indent=4)
+            json.dump({'task_obj': task_obj, 'result': result, 'test_funtions': unit_tests, 'runresult': runresult}, file, indent=4)
 
 
-        if 'Error executing code:' not in runresult:
+        if 'Error executing code' not in runresult:
             print('***Python code with no bugs***')
-            return "", 'completed'
+            return "### **Auto Generated Unit Tests:** \n ```python \n"+ unit_tests+"\n```\n ### **Tests Results:** \n"+ runresult +"\n", 'completed'
         else:
             print('***Python code with bugs***')
-            return "###below are some unit tests: \n ```python"+ test_funtions+"``` ### tests results are as follows: \n"+ runresult, 'failed'
+            return "### **Auto Generated Unit Tests:** \n ```python \n"+ unit_tests+"\n```\n ### **Tests Results:** \n"+ runresult +"\n", 'failed'
     
     async def generate_test_function(self, task_obj, result, history) -> str:
         """
@@ -176,17 +183,17 @@ You are a precise and detail-oriented code-analysis assistant. Your task is to a
        
 
         user_content = f"""
-## Current Task Requirement:
+# **Current Task Requirement:**
 {task_obj}
 
 ---
 
-## Current Task change History:
+# **Current Task Historical Results and Your Feedbacks:**
 {history}
 
 ---
 
-## Current Task Latest Result:
+# **Current Task latest Result based on Your Lastest Feedbak:**
 {result}
         """
 
@@ -195,10 +202,10 @@ You are a precise and detail-oriented code-analysis assistant. Your task is to a
             {'role': 'user', 'content': user_content}
         ]
 
-        test_code = await self.gpt_client.a_chat_completion(messages_exe, temperature=Config.TEMPERATURE)
-        test_code = test_code.strip('```python').strip('```')
+        test_func = await self.gpt_client.a_chat_completion(messages_exe)
+        test_func = test_func.strip('```python').strip('```')
 
-        return test_code
+        return test_func
     
     async def execute_python_code(self, test_code) -> str: 
         """
@@ -241,11 +248,9 @@ You are a precise and detail-oriented code-analysis assistant. Your task is to a
         ##TODO check if the result need to be runned based on task_obj, 
         # it is possible that the code is just for explaination  
         user_content = f'''
-You are an expert Python evaluator. Your task is to determine whether 
-the provided Python code should be **unit tested** based on the task objective 
-and its generated result.
+Determine whether the provided Python code should be **unit tested** based on the task objective and its generated result.
 
-### **Instructions:**
+# **Instructions:**
 - If the task objective specifies generating a **program or executable logic** for future use, 
 and the result contains **functional Python code (e.g., functions, classes, or logic meant for execution)**,  
 **return `Y`**.
@@ -257,12 +262,13 @@ and the result contains a **non-functional snippet meant only for explanation**,
 - **Do not include any explanations or additional text.**  
 Your response must be strictly either `Y` or `N`.
 
-### **Task Objective:**
+# **Task Objective:**
 {task_obj}
 
-    ----
-### **Generated Python Code:**
+----
+# **Generated Python Code:**
 {result}
+
         '''
         
         messages = [
@@ -270,7 +276,7 @@ Your response must be strictly either `Y` or `N`.
         ]
      
         
-        feedback = await self.gpt_client.a_chat_completion(messages, temperature=Config.TEMPERATURE)
+        feedback = await self.gpt_client.a_chat_completion(messages)
        
         
         if feedback == "N":

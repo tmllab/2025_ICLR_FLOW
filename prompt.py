@@ -130,89 +130,82 @@ The breakdown is meant to **improve efficiency** through **parallel execution**,
 
 ---
 
-## **Guidelines for Workflow Design**
-### **1. Subtask Clarity and Completeness**
+# **Guidelines for Workflow Design**
+## **1. Subtask Clarity and Completeness**
 - **Each subtask must be well-defined, self-contained, and easy to execute by a single agent.**
 - **Keep descriptions concise but informative.** Clearly specify the subtask's purpose, the operation it performs, and its role in the overall workflow.
 - **Avoid unnecessary subtasks.** If a task can be handled efficiently in one step without blocking others, do not split it further.
+- **Avoid test.** Test is done by a sperate module and do not include any tests in worflow
 
-### **2. Dependency Optimization and Parallelization**
+## **2. Dependency Optimization and Parallelization**
 - **Identify only necessary dependencies.** Do not introduce dependencies unless a subtask *genuinely* requires the output of another.
 - **Encourage parallel execution, but do not force it.** If tasks can run independently without affecting quality, prioritize concurrency. However, avoid excessive parallelization that may lead to synchronization issues.
 - **Keep the dependency graph simple.** Avoid deep dependency chains that increase complexity.
 
-### **3. Efficient Agent Assignment**
+## **3. Efficient Agent Assignment**
 - **Assign exactly one agent per subtask.** Every subtask must have a responsible agent.
 - **Use sequential agent IDs starting from "Agent 0".** Assign agents in a clear, structured way.
 - **Ensure logical role assignments.** Each agent should have a well-defined function relevant to the assigned subtask.
 
-### **4. Workflow Simplicity and Maintainability**
+## **4. Workflow Simplicity and Maintainability**
 - **Do not overcomplicate the workflow.** A well-balanced workflow has an optimal number of subtasks that enhance efficiency without adding unnecessary coordination overhead.
 - **Maintain clarity and logical flow.** The breakdown should be intuitive, avoiding redundant or trivial steps.
 - **Prioritize quality over extreme concurrency.** Do not split tasks into too many small fragments if it negatively impacts output quality.
 
 ## Below is an Output Format Template:
 ```json
-{INIT_TEMPLATE}
+{INIT_WORKFLOW_TEMPLATE}
 ```
 '''
 
 TASK_EXECUTION_PROMPT = '''
 # Role:
-You are a highly capable task solver. Your job is to produce a complete solution for the given subtask. Follow these instructions exactly:
+Help me produce a precise and detailed solution for the given task. Follow these instructions exactly:
 
 # Objective & Steps:
 1. Ensure Completeness:
-   - Your output must meet all requirements of the subtask.
+   - Avoid placeholders or incomplete text.
+   - Your output must meet all requirements of the task.
    - Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.
 
 2. Maintain Precision and Clarity:
    - Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.
-   - Avoid placeholders or incomplete text.
-   - Output the answer only without any jusifications
+   - **Output the answer only without any jusifications**
 
 3. Avoid Repetition:
    - Do not repeat verbatim any content from previous tasks.
    - Ensure your output is original and adds value to the workflow.
 
-4. Use Formal Language:
-   - Use formal language without contractions (e.g., use 'do not' instead of 'don't').
-   - Maintain a professional tone throughout the response.
+
 
 # Audience:
-Your output will be used as a solution for the given subtask, it will be used in the later validation and intergration process.
+Your output will be used as a solution for the given task, it will be used in the later validation and intergration process.
 
 '''
 TASK_REEXECUTION_PROMPT = f'''
 # Role
-You are a subtask re-execution agent. Your role is to generate an improved outcome for the given subtask by carefully considering the provided context, downstream objectives, previous execution results, and feedback.
+You are a task re-execution agent. Your role is to generate an improved outcome for the given task by carefully considering the provided context, downstream objectives, previous execution results, and feedback.
 
 # Objective & Steps:
-1. Analyze and Understand:
-   - Carefully review the subtask requirements, context, downstream objectives, previous execution results, and feedback.
-   - Identify specific issues, gaps, or inefficiencies noted in the feedback.
 
-2. Apply Corrections and Enhancements:
-   - Directly address all problems identified in the feedback.
-   - Implement concrete improvements to the result, ensuring the output corrects prior errors and resolves deficiencies.
-   - Make the result as streamlined and effective as possible for downstream tasks while preserving completeness.
+1. Apply Corrections and Enhancements:
+   - Address major problems based on previous execution results, and feedback.
 
-3. Ensure Completeness:
-   - Your output must meet **all** requirements of the subtask.
-   - Include all necessary details so the output is fully self-contained and can be directly used as input for downstream tasks.
-   - The output must be comprehensive, precise, and unambiguous.
-   - Avoid placeholders, incomplete text, or vague descriptions.
+2. Ensure Completeness:
+   - Avoid placeholders or incomplete text.
+   - Your output must meet all requirements of the task.
+   - Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.
 
-4. Avoid Repetition:
+3. Avoid Repetition:
    - Do not repeat verbatim content from previous executions.
-   - Ensure your output is original, enhanced, and contributes additional value to the workflow.
 
-5. Use Formal Language:
-   - Use formal language without contractions (e.g., use "do not" instead of "don't").
-   - Maintain a professional and academic tone throughout the response.
+4. Maintain Precision and Clarity:
+   - Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.
+   - **Output the answer only without any jusifications**
+
 
 # Audience:
-Your output will serve as an improved solution for the subtask and will undergo further validation and integration into the larger workflow.
+Your output will serve as an improved solution for the task and will undergo further validation and integration into the larger workflow.
 '''
 
 IS_PYTHON_PROMPT = '''
@@ -276,91 +269,78 @@ def add(a, b):
 '''
 
 TESTCODE_GENERATION_PROMPT = f'''
-You are a test code generator responsible for creating comprehensive test cases for Python code while ensuring the tests are **safe to execute** in an automated environment.
+You are a unit test code generator responsible for creating unit test cases for Python code.
 
-# Important Restrictions  
-- **Do not generate tests that trigger interactive UI elements or popups.**  
-- **Skip tests for code that involves GUI loops, dialogs, alerts, or blocking UI calls** such as:
-  - `tk.Tk()`, `root.mainloop()`
-  - `tkinter.messagebox.showinfo()`, `.showerror()`, `.askyesno()`
-  - `matplotlib.pyplot.show()`
-  - `sys.exit()`, `input()`, or anything requiring user interaction.
 
----
-
-## **Test Code Generation Rules**
-Follow these steps **strictly** to generate valid test cases:
-
-### 1. **Function Analysis**  
-- Identify input parameters and return types.  
-- Understand the expected behavior.  
-- Determine edge cases and boundary conditions.  
-- Consider the task objective; ensure that the tests align with the overall goal defined in `[SUBTASK]`.  
+# **Test Code Generation Rules**
 - **Check if the provided code is meaningful for testing.** Skip test generation if the code only defines constants, simple data structures, GUI-related elements, or unused functions.  
-
-### 2. **Test Case Design**  
+-  Do not generate tests that trigger interactive UI elements or popups.  
 - Create test cases for normal operation.  
 - Include edge cases (e.g., empty inputs, boundary values).  
 - Consider error conditions and invalid inputs.  
-- **Ensure that no test execution results in UI popups, blocking dialogs, or system interruptions.**  
 
-### 3. **Test Structure Requirements**  
+# **Test Structure Requirements**  
 - **Each test case must be wrapped in a separate `try/except` block.**  
 - **Each `try/except` block must contain only one assertion.**  
 - Tests must be independent and self-contained.  
 - Clear error messages must be provided for failures.  
 - All test results must be collected and reported.  
 
----
 
-## **Audience**  
-Your response will be practically implemented for verification.  
 
-## **Output Format & Example**
-- **Output should contain only the test code.**
-- **Do not include explanations, comments, or any extra text.**
-- **Ensure the test function does not depend on interactive or GUI elements.**
+# **Output Format & Example**
+- Do not repeat orginal code for test. 
+- Output should contain only run_tests() function without any explanations or justification.
+- Ensure the test function does not depend on interactive or GUI elements.
 
-- EXAMPLE INPUT:
-{TESTCODE_EXAMPLE}
----
-OUTPUT FORMAT:
+
+
+## **OUTPUT FORMAT FOR GENERATED TEST**:
+```python
 {TESTCODE_GENERATION_EXAMPLE}
+```
 ---
+
+## **OUTPUT FORMAT FOR SKIP TEST**:
+```python
+pass
+```
+---
+
 '''
 
 TEXT_VALIDATION_PROMPT = f'''
-You are a subtask result evaluator responsible for determining whether a subtask result meets the subtask requirements, if not, you need to improve it.
+Help me determine determining whether a task result meets the task requirements. If it does not, you must improve it.
 
 # Objective and Steps
 1. Completeness and Quality Check:
-   - Verify if the result covers all elements required by the subtask.
-   - Evaluate whether the output meets the overall quality criteria (accuracy, clarity, format, and completeness).
+   - Verify that the result covers all elements required by the task.
+   - Evaluate whether the output meets overall quality criteria (accuracy, clarity, format, and completeness).
 
 2. Change Detection:
    - If this is a subsequent result, compare it with previous iterations.
    - If the differences are minimal or the result has not significantly improved, consider it "good enough" for finalization.
 
 3. Feedback and Escalation:
-   - If the result meets the criteria or improvements are negligible compared to previous iterations, return "OK".
-   - Otherwise, provide detailed feedback with clear directives on what aspects need to be improved. If the same issues persist after several iterations, explicitly instruct that the result should be finalized.
+   - If the result meets the criteria or the improvements are negligible compared to previous iterations, return "OK".
+   - Otherwise, provide detailed feedback with clear directives on what aspects need improvement. If the same issues persist after several iterations, explicitly instruct that the result should be finalized.
 
 4. Ensure Completeness:
-   - Your output must meet all requirements of the subtask.
+   - Your output must meet all requirements of the task.
    - Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.
 
 5. Maintain Precision and Clarity:
    - Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.
    - Avoid placeholders or incomplete text.
 
-   
-
 # Response Format
 - If the result meets the standard:
   - Only return **"OK"**.
 
 - If the result does **not** meet the standard:
-  - add detailed jusification for the change start with "here are some feedbacks" and directly write an improved new result start with "here are the changes".
+  - Provide precise feedback about the problems and propose your solution.
+  - Start with "here are some feedbacks:" followed by your detailed justification.
+  - Then directly write an improved new result starting with "here are the changes:".
 '''
 
 UPDATE_INPUT_EXAMPLE = '''

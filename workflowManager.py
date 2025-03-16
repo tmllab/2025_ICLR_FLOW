@@ -160,7 +160,7 @@ class WorkflowManager:
             {"role": "system", "content": prompt.UPDATE_WORKFLOW_PROMPT},
             {"role": "user", "content": json.dumps(simplified_workflow, indent=4)}
         ]
-        response_text = await self.gpt_client.a_chat_completion(messages, temperature=0)
+        response_text = await self.gpt_client.a_chat_completion(messages)
         # Remove any markdown wrappers
         response_text = response_text.strip('```json').strip('```')
 

@@ -123,13 +123,13 @@ class History:
         for i in range(len(self.data)):
             result, feedback = self.get_history_by_index(i)
             history.append(
-                f"{'-'*40}\n"
-                f"*REVISION {i}*\n"
-                f"Feedback:\n{feedback}\n"
-                f"Result:\n{result}\n\n"
+                f"{'-'*3}\n"
+                f"## **revision {i}**\n"
+                f"{result}\n\n"
+                f"## **Feedbacks to the revision\n{feedback}**\n\n"
             )
 
-        history.append('-' * 40)
+        history.append('-' * 3)
         return "\n".join(history)
             
 
