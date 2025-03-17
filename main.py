@@ -51,13 +51,22 @@ def main():
     # 2). for each reinforcement learning algorithms, the slide should include motivation, problem and intuitive solution and detailed math equations.
     # 3). Please make sure the the lecture have a good self-contain.
     # '''
-    overall_task: str = '''Develop a game that fuses Tetris and Bejeweled mechanics. 
-    Falling tetrominoes should lock into a grid and transform into colored gems. 
-    The game must support both Tetris line-clearing and Bejeweled match-3 clearing, triggering chain reactions and bonus points. 
-    Include a GUI (using a framework like Pygame) that displays the game grid, current score, and next tetromino preview, along with smooth animations. 
-    No sound effects are needed.'''
-    # overall_task: str = '''Develop a Snake game with a graphical user interface (GUI) in Python.'''
-    # overall_task: str = '''Develop a Rock-Paper-Scissors game with a graphical user interface (GUI) in Python. 
+    overall_task: str = '''Develop a game that fuses Tetris and Bejeweled mechanics. Falling tetrominoes should lock into a grid and transform into colored gems. The game must support both Tetris line-clearing and Bejeweled match-3 clearing, triggering chain reactions and bonus points. Include a GUI (using a framework like Pygame) that displays the game grid, current score, and next tetromino preview, along with smooth animations. No sound effects are needed'''
+
+#     overall_task: str = '''
+# The game should blend the core mechanics of classic **Snake** with the strategic combat elements of **Tank War**, featuring a visually engaging **graphical user interface (GUI)**.  
+
+# - The **player controls a continuously moving tank**, navigating the battlefield by steering left or right.  
+# - The tank must **avoid obstacles, bullet from enemy tank, and prevent self-collision** (due to a hazardous fuel trail), and **collect limited resources** like ammunition and fuel.  
+# - The game includes AI enemy tank that act as agents, dynamically aiming and shooting at the player.  
+# - The player can attack and distroy enemy tank.  
+# - The environment should feature multiple interactive agents including obstacles and AI-driven tanks.  
+# - A **real-time HUD** should display crucial information—**health, fuel, and score**—with smooth animations and **intuitive controls**.  
+
+# The implementation should be:  
+# - Written in **a single Python file**  
+# - without sound effects  
+# '''
     # The game should allow a player to compete against a naive AI that randomly selects Rock, Paper, or Scissors. 
     # The UI should display the player's choice, the AI's choice, and the game result (win, lose, or draw). 
     # Provide an interactive and user-friendly experience.'''
