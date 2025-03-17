@@ -29,7 +29,7 @@ class Summary:
         """
         self.gpt_client = GPTClient(
             api_key=Config.OPENAI_API_KEY,
-            model=Config.GPT_MODEL,
+            model='4o-mini',
             temperature=Config.TEMPERATURE
         )
         self.summary_prompt = prompt.RESULT_EXTRACT_PROMPT
