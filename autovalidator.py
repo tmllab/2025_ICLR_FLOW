@@ -58,8 +58,8 @@ class Validator:
  
     
 
-        is_python_code = await self.pythonval.need_validate(solution,task_obj)
-        if is_python_code:
+        need_unit_test = await self.pythonval.need_validate(solution,task_obj)
+        if need_unit_test:
             # if the result contains python code
             test_result, status = await self.pythonval.validate(task_obj, solution, history)
 
