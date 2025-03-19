@@ -326,8 +326,7 @@ Help me determine whether a task result meets the task requirements. If it does 
    - Otherwise, provide **direct and precise feedback** and **output the improved result in the required format** for finalization.  
 
 4. **Ensure Completeness, Maintain Precision and Clarity:**  
-   - Your output must fully meet the task requirements.  
-   - Your output will be used as input for subsequent tasks.  
+   - **Your output must fully meet the task requirements and directly address the problem in your feedback.**  
    - Avoid placeholders or incomplete text.  
 
 # Response Format  
@@ -335,8 +334,8 @@ Help me determine whether a task result meets the task requirements. If it does 
   - Return **"OK"**.  
 
 - **If the result does not meet the standard:**  
-  - Start with **"Here is some feedback:"** followed by a detailed justification.  
-  - Explicitly generate the improved result, starting with **"Here is the improved result:"**.  
+  - Start with **"Here is some feedback:"** followed by precise justifications.  
+  - Gnerate the improved result that directly address the problem in your feedback, starting with **"Here is the improved result:"**.  
 '''
 
 
