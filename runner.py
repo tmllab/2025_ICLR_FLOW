@@ -93,6 +93,11 @@ class AsyncRunner:
             else:
                 result = await self.executer.re_execute(task_objective, context, next_objective, result, task_obj.get_history())
             
+            if self.max_validation_itt == 1:
+                task_obj.save_history(result, '')
+                task_obj.set_status('completed')
+                break
+            
             feedback, new_status = await self.validator.validate(task_objective, result, task_obj.get_history())
             task_obj.save_history(result, feedback)
             task_obj.set_status(new_status)
