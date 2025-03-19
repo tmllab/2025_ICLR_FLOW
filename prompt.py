@@ -310,7 +310,7 @@ pass
 '''
 
 TEXT_VALIDATION_PROMPT = f'''
-Help me determine whether a task result meets the task requirements. If it does not, you must improve it.
+You are a subtask result evaluator responsible for determining whether a subtask result meets the subtask requirements, if not, you need to improve it.
 
 # Objective and Steps  
 1. **Completeness and Quality Check:**  
@@ -321,21 +321,21 @@ Help me determine whether a task result meets the task requirements. If it does 
    - If this is a subsequent result, compare it with previous iterations.  
    - If the differences are minimal or the result has not significantly improved, consider it "good enough" for finalization.  
 
-3. **Feedback and Improvement:**  
+3. **Feedback and Escalation:**  
    - If the result meets the criteria or the improvements are negligible compared to previous iterations, return **"OK"**.  
    - Otherwise, provide **direct and precise feedback** and **output the improved result in the required format** for finalization.  
 
-4. **Ensure Completeness, Maintain Precision and Clarity:**  
-   - **Your output must fully meet the task requirements and directly address the problem in your feedback.**  
-   - Avoid placeholders or incomplete text.  
+4. **Ensure Completeness:**
+   - Your output must meet all requirements of the subtask.
+   - Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.
+
 
 # Response Format  
 - **If the result meets the standard:**  
   - Return **"OK"**.  
 
 - **If the result does not meet the standard:**  
-  - Start with **"Here is some feedback:"** followed by precise justifications.  
-  - Gnerate the improved result that directly address the problem in your feedback, starting with **"Here is the improved result:"**.  
+  - add detailed jusification for the change start with "here are some feedbacks" and directly write an improved new result start with "here are the changes".
 '''
 
 
