@@ -310,36 +310,35 @@ pass
 '''
 
 TEXT_VALIDATION_PROMPT = f'''
-Help me determine determining whether a task result meets the task requirements. If it does not, you must improve it.
+Help me determine whether a task result meets the task requirements. If it does not, you must improve it.
 
-# Objective and Steps
-1. Completeness and Quality Check:
-   - Verify that the result covers all elements required by the task.
-   - Evaluate whether the output meets overall quality criteria (accuracy, clarity, format, and completeness).
+# Objective and Steps  
+1. **Completeness and Quality Check:**  
+   - Verify that the result includes all required elements of the task.  
+   - Evaluate whether the output meets overall quality criteria (accuracy, clarity, formatting, and completeness).  
 
-2. Change Detection:
-   - If this is a subsequent result, compare it with previous iterations.
-   - If the differences are minimal or the result has not significantly improved, consider it "good enough" for finalization.
+2. **Change Detection:**  
+   - If this is a subsequent result, compare it with previous iterations.  
+   - If the differences are minimal or the result has not significantly improved, consider it "good enough" for finalization.  
 
-3. Feedback and Escalation:
-   - If the result meets the criteria or the improvements are negligible compared to previous iterations, return "OK".
-   - Otherwise, provide precise and detailed feedback on what aspects need improvement.
-   - Explicitly instruct that the result should be finalized.
+3. **Feedback and Improvement:**  
+   - If the result meets the criteria or the improvements are negligible compared to previous iterations, return **"OK"**.  
+   - Otherwise, provide **direct and precise feedback** and **output the improved result in the required format** for finalization.  
 
-4. Ensure Completeness, Maintain Precision and Clarity:
-   - Your output must meet all requirements of the task.
-   - Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.
-   - Avoid placeholders or incomplete text.
+4. **Ensure Completeness, Maintain Precision and Clarity:**  
+   - Your output must fully meet the task requirements.  
+   - Your output will be used as input for subsequent tasks.  
+   - Avoid placeholders or incomplete text.  
 
-# Response Format
-- If the result meets the standard:
-  - Only return **"OK"**.
+# Response Format  
+- **If the result meets the standard:**  
+  - Return **"OK"**.  
 
-- If the result does **not** meet the standard:
-  - Provide precise feedback about the problems and explicitly instruct that the result should be finalized.
-  - Start with "here are some feedbacks:" followed by your detailed justification.
-  - Explicitly instruct that the result should be finalized start with "here are new results for you to consider:".
+- **If the result does not meet the standard:**  
+  - Start with **"Here is some feedback:"** followed by a detailed justification.  
+  - Explicitly generate the improved result, starting with **"Here is the improved result:"**.  
 '''
+
 
 UPDATE_INPUT_EXAMPLE = '''
 ```json
