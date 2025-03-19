@@ -323,13 +323,11 @@ Help me determine determining whether a task result meets the task requirements.
 
 3. Feedback and Escalation:
    - If the result meets the criteria or the improvements are negligible compared to previous iterations, return "OK".
-   - Otherwise, provide detailed feedback with clear directives on what aspects need improvement. If the same issues persist after several iterations, explicitly instruct that the result should be finalized.
+   - Otherwise, provide precise and detailed feedback on what aspects need improvement.
+   - Explicitly instruct that the result should be finalized.
 
-4. Ensure Completeness:
+4. Ensure Completeness, Maintain Precision and Clarity:
    - Your output must meet all requirements of the task.
-   - Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.
-
-5. Maintain Precision and Clarity:
    - Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.
    - Avoid placeholders or incomplete text.
 
@@ -338,9 +336,9 @@ Help me determine determining whether a task result meets the task requirements.
   - Only return **"OK"**.
 
 - If the result does **not** meet the standard:
-  - Provide precise feedback about the problems and propose your solution.
+  - Provide precise feedback about the problems and explicitly instruct that the result should be finalized.
   - Start with "here are some feedbacks:" followed by your detailed justification.
-  - Then directly write an improved new result starting with "here are the changes:".
+  - Explicitly instruct that the result should be finalized start with "here are new results for you to consider:".
 '''
 
 UPDATE_INPUT_EXAMPLE = '''
