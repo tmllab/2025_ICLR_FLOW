@@ -1,15 +1,22 @@
-import os
-
 class Config:
-    """Centralized configuration parameters."""
+    """Centralized static configuration parameters."""
 
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
-    
-
-    if not OPENAI_API_KEY:
-        raise ValueError("Please set the OPENAI_API_KEY environment variable.")
-
+    OPENAI_API_KEY: str = "your-api-key"
     GPT_MODEL: str = "gpt-4o-mini"
     TEMPERATURE: float = 1
 
+    @classmethod
+    def set(cls, key: str, value):
+        """Set a configuration parameter dynamically."""
+        if hasattr(cls, key):
+            setattr(cls, key, value)
+        else:
+            raise AttributeError(f"{key} is not a valid configuration attribute.")
 
+    @classmethod
+    def get(cls, key: str):
+        """Retrieve a configuration parameter."""
+        if hasattr(cls, key):
+            return getattr(cls, key)
+        else:
+            raise AttributeError(f"{key} is not a valid configuration attribute.")
