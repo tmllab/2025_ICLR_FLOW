@@ -2,8 +2,6 @@
 *.json
 
 *.txt
-*.html
-*.css
 .zip
 out
 example.py
