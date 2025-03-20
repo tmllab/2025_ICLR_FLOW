@@ -38,11 +38,11 @@ class Flow:
         task_done_counter (int): Counts how many tasks have completed since last workflow refinement.
         can_schedule_tasks (asyncio.Event): Controls if scheduling is allowed.
         schedule_lock (asyncio.Lock): Prevents race conditions in scheduling.
-        refine_threhold (int): how many tasks have completed to tragger the workflow refinement.
+        refine_threshold (int): how many tasks have completed to tragger the workflow refinement.
         max_validation_itt(int): how many times the validation work will repeat.
     """
 
-    def __init__(self, overall_task: str, refine_threhold=3, max_refine_itt = 5, n_candidate_graphs=10, workflow = None, max_validation_itt: int = 0):
+    def __init__(self, overall_task: str, refine_threshold=3, max_refine_itt = 5, n_candidate_graphs=10, workflow = None, max_validation_itt: int = 0):
  
         self.overall_task = overall_task
         self.runner = AsyncRunner(overall_task, max_validation_itt)
@@ -61,7 +61,7 @@ class Flow:
 
         # Ensures only one scheduling operation at a time
         self.schedule_lock = asyncio.Lock()
-        self.refine_threhold=refine_threhold
+        self.refine_threshold=refine_threshold
 
     async def run(self):
         """
@@ -155,8 +155,8 @@ class Flow:
 
 
         # Trigger workflow refinement when threshold is reached
-        print(self.task_done_counter , self.refine_threhold )
-        if self.task_done_counter >= self.refine_threhold and not self.redefining and self.max_refine_itt > 0:
+        print(self.task_done_counter , self.refine_threshold )
+        if self.task_done_counter >= self.refine_threshold and not self.redefining and self.max_refine_itt > 0:
             logger.info(f"Task {task_id} triggers workflow refinement.")
             self.task_done_counter = 0
             self.redefining = True

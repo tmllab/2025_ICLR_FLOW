@@ -40,14 +40,19 @@ def main():
     '''
     # overall_task: str = '''Develop a game that fuses Tetris and Bejeweled mechanics. Falling tetrominoes should lock into a grid and transform into colored gems. The game must support both Tetris line-clearing and Bejeweled match-3 clearing, triggering chain reactions and bonus points. Include a GUI (using a framework like Pygame) that displays the game grid, current score, and next tetromino preview, along with smooth animations. No sound effects are needed'''
 
-    
+    candidate_graphs: int = 5
+    refine_threshold: int = 3
+    max_refine_itt=5
+    max_validation_itt: int = 10
+
+
     # Record the whole validation process in a new overall task, following the previous one
     with open('validate_log.json', 'a', encoding='utf-8') as file:
             file.write(f'\n**********\nHere is the whole validation process of a new overall task:\n{overall_task}\n**********\n')
 
     start_time = time.time()
 
-    manager = Flow(overall_task=overall_task, refine_threhold=3,max_refine_itt=5,n_candidate_graphs=5,workflow=None,max_validation_itt=10)
+    manager = Flow(overall_task=overall_task, refine_threshold=refine_threshold,max_refine_itt=max_refine_itt,n_candidate_graphs=candidate_graphs,workflow=None,max_validation_itt=max_validation_itt)
     asyncio.run(manager.run_async())
 
     elapsed_time = time.time() - start_time
