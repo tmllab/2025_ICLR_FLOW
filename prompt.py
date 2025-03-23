@@ -133,9 +133,10 @@ The breakdown is meant to **improve efficiency** through **parallel execution**,
 # **Guidelines for Workflow Design**
 ## **1. Subtask Clarity and Completeness**
 - **Each subtask must be well-defined, self-contained, and easy to execute by a single agent.**
+- **Ensure that the workflow meets all requirements of the task.**
 - **Keep descriptions concise but informative.** Clearly specify the subtask's purpose, the operation it performs, and its role in the overall workflow.
 - **Avoid unnecessary subtasks.** If a task can be handled efficiently in one step without blocking others, do not split it further.
-- **Avoid test.** Test is done by a sperate module and do not include any tests in worflow
+
 
 ## **2. Dependency Optimization and Parallelization**
 - **Identify only necessary dependencies.** Do not introduce dependencies unless a subtask *genuinely* requires the output of another.
@@ -422,7 +423,7 @@ You will get the input like this: {UPDATE_INPUT_EXAMPLE}
   1. Examine All Tasks: Review all tasks, including those labeled "completed", "pending" and "failed".
      - Check fails:
        - If a task is labeled "failed", it implies that this task has been rerun multiple times based on various feedback but still fails.
-       - Consider refining the whole workflow to make this task easier to achieve.
+       - Consider improve the whole workflow by modifying, deleting or adding tasks.
      - Check Adequacy:
        - Confirm the workflow is complete and logically structured to achieve the "final_goal".
        - Ensure there are no missing critical tasks or dependencies.
