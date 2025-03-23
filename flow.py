@@ -34,23 +34,23 @@ class Flow:
         optimizer (WorkflowManager): An instance used to refine the workflow.
         active_tasks (Dict[str, asyncio.Task]): Maps task IDs to active asyncio tasks.
         completed_tasks (Dict[str, asyncio.Task]): Maps task IDs to completed tasks.
-        redefining (bool): Whether the workflow is currently being redefined.
-        task_completion_counter (int): Counts how many tasks have completed since last workflow refinement.
+        redefining (bool): Whether the workflow is currently
+        task_done_counter (int): Counts how many tasks have completed since last workflow refinement.
         can_schedule_tasks (asyncio.Event): Controls if scheduling is allowed.
         schedule_lock (asyncio.Lock): Prevents race conditions in scheduling.
-        refine_threhold (int): how many tasks have completed to tragger the workflow refinement.
-        enable_refine (bool): enable workflow refinment or not
+        refine_threshold (int): how many tasks have completed to tragger the workflow refinement.
+        max_validation_itt(int): how many times the validation work will repeat.
     """
 
-    def __init__(self, overall_task: str, enable_refine=True, refine_threhold=3, n_candidate_graphs=10, workflow = None):
+    def __init__(self, overall_task: str, refine_threshold=3, max_refine_itt = 5, n_candidate_graphs=10, workflow = None, max_validation_itt: int = 0):
  
         self.overall_task = overall_task
-        self.runner = AsyncRunner(overall_task)
+        self.runner = AsyncRunner(overall_task, max_validation_itt)
         self.optimizer = WorkflowManager(overall_task)
         self.active_tasks: Dict[str, asyncio.Task] = {}
-        self.completed_tasks: Dict[str, Any] = {}
         self.redefining = False
-        self.task_completion_counter = 0
+        self.task_done_counter = 0
+        self.max_refine_itt = max_refine_itt
         if workflow is not None:
             self.workflow = workflow
         else:
@@ -61,11 +61,7 @@ class Flow:
 
         # Ensures only one scheduling operation at a time
         self.schedule_lock = asyncio.Lock()
-
-        if enable_refine==False:
-            self.refine_threhold=float('inf')
-        else:
-            self.refine_threhold=refine_threhold
+        self.refine_threshold=refine_threshold
 
     async def run(self):
         """
@@ -74,9 +70,9 @@ class Flow:
         if not self.can_schedule_tasks.is_set():
             return
 
-        for task in self.workflow.get_pending_tasks():
+        for task in self.workflow.get_runable_tasks():     
             await self.schedule_task(task.id)
-
+      
     async def schedule_task(self, task_id: str):
         """
         Schedule a single task for execution if it's not already active.
@@ -117,32 +113,19 @@ class Flow:
         """
         task_obj = self.workflow.tasks[task_id]
 
-        if task_obj.status != 'pending':
-            logger.info(f"Task {task_id} not pending; skipping.")
+        if task_obj.status == 'completed':
+            logger.info(f"Task {task_id} completed; skipping.")
             return
 
-        try:
-            # Build context from successfully completed (status == 'completed') dependencies
+      
+        # Execute task with the runner and set status = 'completed' or 'failed'
+        result = await self.runner.execute(self.workflow, task_id)
 
 
-            # Execute task with the runner
-            result = await self.runner.execute(self.workflow, task_id)
-            task_obj.data = result
-            task_obj.status = 'completed'
-            self.completed_tasks[task_id] = task_obj
+        # Logging execution result for debugging
+        with open('execute_log.json', 'a', encoding='utf-8') as file:
+            json.dump({task_id: result}, file, indent=4)
 
-            logger.info(f"Task {task_id} completed with result: {result}")
-
-            # Logging execution result for debugging
-            with open('execute_log.json', 'a', encoding='utf-8') as file:
-                json.dump({task_id: result}, file, indent=4)
-
-        except asyncio.CancelledError:
-            logger.info(f"Task {task_id} was cancelled.")
-            raise
-        except Exception as e:
-            logger.error(f"Task {task_id} encountered error: {e}")
-            raise
 
     def task_cancelled_callback(self, task_id: str):
         """
@@ -164,18 +147,18 @@ class Flow:
         Increments counters, updates downstream tasks, and triggers workflow refinement if needed.
         """
         self.active_tasks.pop(task_id, None)
-        self.task_completion_counter += 1
+        self.task_done_counter += 1
         logger.info(
-            f"Task {task_id} done. Total completed so far: {self.task_completion_counter}"
+            f"Task {task_id} done. Total completed so far: {self.task_done_counter}"
         )
-        self.workflow.handle_task_completion(task_id)
+        self.workflow.handle_task_done(task_id)
 
 
         # Trigger workflow refinement when threshold is reached
-        print(self.task_completion_counter , self.refine_threhold )
-        if self.task_completion_counter >= self.refine_threhold and not self.redefining:
+        print(self.task_done_counter , self.refine_threshold )
+        if self.task_done_counter >= self.refine_threshold and not self.redefining and self.max_refine_itt > 0:
             logger.info(f"Task {task_id} triggers workflow refinement.")
-            self.task_completion_counter = 0
+            self.task_done_counter = 0
             self.redefining = True
             self.can_schedule_tasks.clear()
 
@@ -188,7 +171,7 @@ class Flow:
             await self.optimizer.update_workflow()
             self.can_schedule_tasks.set()
             self.redefining = False
-            
+            self.max_refine_itt -= 1
 
         # Continue scheduling any remaining tasks
         await self.run()
@@ -204,7 +187,8 @@ class Flow:
 
         logger.info("All tasks completed. Final Task Results:")
         for task_id, task_obj in sorted(self.workflow.tasks.items()):
-            logger.info(f" - {task_id}: {task_obj.data}")
+            result, feedback = task_obj.get_latest_history()
+            logger.info(f" - {task_id}: {result}")
 
 
 

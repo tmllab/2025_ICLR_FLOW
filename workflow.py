@@ -2,24 +2,68 @@ from typing import Dict, Any, List
 import networkx as nx
 from collections import deque, defaultdict
 import json
+from history import History
 
 class Task:
-    """Data structure representing a workflow task."""
+    """
+    Data structure representing a workflow task.
+
+    This class encapsulates all information about a single task in the workflow:
+    - Task identification and objectives
+    - Dependencies (previous and next tasks)
+    - Execution status and history
+    - Agent assignment and execution details
+
+    Attributes:
+        id (str): Unique identifier for the task.
+        objective (str): Description of what the task should accomplish.
+        agent_id (int): Identifier for the agent assigned to this task.
+        next (List[str]): List of task IDs that depend on this task.
+        prev (List[str]): List of task IDs this task depends on.
+        status (str): Current status of the task ('pending', 'completed', 'failed').
+        history (History): Object tracking execution attempts and feedback.
+        remaining_dependencies (int): Count of uncompleted dependencies.
+        agent (str): Additional agent information or specifications.
+    """
+
     def __init__(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
-                 status: str = 'pending', data: str = '', agent: str = ''):
+                 status: str = 'pending', history: History = None, agent: str = ''):
+        """
+        Initialize a new Task instance.
+
+        Args:
+            id (str): Unique task identifier.
+            objective (str): Task description/goal.
+            agent_id (int): ID of agent assigned to task.
+            next (List[str]): Downstream dependent task IDs.
+            prev (List[str]): Upstream dependency task IDs.
+            status (str, optional): Initial task status. Defaults to 'pending'.
+            history (History, optional): Execution history object. Defaults to None.
+            agent (str, optional): Additional agent details. Defaults to empty string.
+        """
         self.id = id
         self.objective = objective
         self.agent_id = agent_id
         self.next = next
         self.prev = prev
         self.status = status
-        self.data = data
+        # self.data = data
+        if history == None:
+            self.history = History()
+        else:
+            self.history = history
         self.remaining_dependencies = len(self.prev)
         self.agent = agent
-
+  
 
     def to_dict(self) -> Dict[str, Any]:
-        """Converts the Task object to a dictionary for JSON serialization."""
+        """
+        Convert the Task object to a dictionary format for serialization.
+
+        Returns:
+            Dict[str, Any]: Dictionary containing all task attributes,
+                           with the latest execution result from history.
+        """
         return {
             'id': self.id,
             'objective': self.objective,
@@ -27,10 +71,48 @@ class Task:
             'next': self.next,
             'prev': self.prev,
             'status': self.status,
-            'data': self.data,
+            'history': self.history.get_latest_result(),
             'remaining_dependencies': self.remaining_dependencies,
             'agent': self.agent
         }
+    
+    def set_status(self, status: str):
+        """
+        Update the task's execution status.
+
+        Args:
+            status (str): New status value ('pending', 'completed', 'failed').
+        """
+        self.status = status
+
+    def save_history(self, data: str, feedback: str = ''):
+        """
+        Save execution result and feedback to task history.
+
+        Args:
+            data (str): Execution result or output.
+            feedback (str, optional): Validation feedback. Defaults to empty string.
+        """
+        self.history.save(data, feedback)
+
+    def get_history(self) -> str:
+        """
+        Get formatted string of complete execution history.
+
+        Returns:
+            str: Formatted history of all execution attempts and feedback.
+        """
+        return self.history.get_history_as_chat_messages()
+    
+    def get_latest_history(self) -> tuple[str, str]:
+        """
+        Get the most recent execution result and feedback.
+
+        Returns:
+            tuple[str, str]: Tuple of (latest_result, latest_feedback).
+        """
+        result, feedback = self.history.get_latest_history()
+        return result, feedback
 
 
 
@@ -67,7 +149,8 @@ class Workflow:
             if prev_id in self.tasks and self.tasks[prev_id].status == 'completed':
                 prev_task = self.tasks[prev_id]
                 objective = prev_task.objective
-                result = prev_task.data if prev_task.data else 'None'
+                # result = prev_task.data if prev_task.data else 'None'
+                result, feedback = prev_task.get_latest_history() if prev_task.get_latest_history() else 'None'
                 context_lines.append(
                     f"Task {prev_id}:\n"
                     f"  Objective: {objective}\n"
@@ -103,7 +186,7 @@ class Workflow:
         else:
             return "No downstream objectives available."
     
-    def handle_task_completion(self, task_id: str) -> List[str]:
+    def handle_task_done(self, task_id: str) -> List[str]:
         """
         Update the downstream tasks of a just-completed task.
         Decrements the remaining_dependencies count for each downstream task.
@@ -112,18 +195,18 @@ class Workflow:
         if task_id not in self.tasks:
             return []
         task_obj = self.tasks[task_id]
-        ready_to_run = []
-        for next_id in task_obj.next:
-            if next_id in self.tasks:
-                downstream_task = self.tasks[next_id]
-                if downstream_task.status == 'pending':
-                    downstream_task.remaining_dependencies -= 1
-                    if downstream_task.remaining_dependencies <= 0:
-                        ready_to_run.append(next_id)
-        return ready_to_run
+        if task_obj.status == "completed":
+            for next_id in task_obj.next:
+                if next_id in self.tasks:
+                    downstream_task = self.tasks[next_id]
+                    if downstream_task.remaining_dependencies > 0:
+                        downstream_task.remaining_dependencies -= 1
+    
+            
+
 
     def add_task(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
-                 status: str = 'pending', data: str = '', remaining_dependencies: int = 0,
+                 status: str = 'pending', history: History = None, remaining_dependencies: int = 0,
                  agent: str = '', compute_dependencies: bool = True):
         """
         Add a new task to the workflow and update dependency links in related tasks.
@@ -148,7 +231,8 @@ class Workflow:
             # In merge scenarios, do not compute dependencies yet.
             remaining_dependencies = 0
         
-        new_task = Task(id, objective, agent_id, next, prev, status, data, remaining_dependencies, agent)
+      
+        new_task = Task(id, objective, agent_id, next, prev, status, history, agent)
         self.tasks[id] = new_task
 
         # Update related tasks: add this task id to each parent's `next` list.
@@ -165,7 +249,7 @@ class Workflow:
 
 
     def edit_task(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
-                  status: str = 'pending', data: str = '', remaining_dependencies: int = 0, agent: str = ''):
+                  status: str = 'pending', history: History = None, remaining_dependencies: int = 0, agent: str = ''):
         """
         Edit an existing task and update dependency links.
         Raises a ValueError if the task does not exist.
@@ -186,7 +270,8 @@ class Workflow:
         task.next = next
         task.prev = prev
         task.status = status
-        task.data = data
+        # task.data = data
+        task.history = history
         task.agent = agent
         if remaining_dependencies == 0:
             task.remaining_dependencies = sum(
@@ -223,7 +308,7 @@ class Workflow:
         for p in task.prev:
             if p in self.tasks and id in self.tasks[p].next:
                 self.tasks[p].next.remove(id)
-        # Remove this task id from its children’s prev lists.
+        # Remove this task id from its children's prev lists.
         for n in task.next:
             if n in self.tasks and id in self.tasks[n].prev:
                 self.tasks[n].prev.remove(id)
@@ -268,7 +353,8 @@ class Workflow:
                         next=new_task_data.get('next', []),
                         prev=new_task_data.get('prev', []),
                         status=new_status,
-                        data='',
+                        # data='',
+                        history=History(),
                         remaining_dependencies=0,
                         agent=new_task_data.get('agent', '')
                     )
@@ -282,7 +368,8 @@ class Workflow:
                     next=new_task_data.get('next', []),
                     prev=new_task_data.get('prev', []),
                     status='pending',
-                    data='',
+                    # data='',
+                    history=History(),
                     remaining_dependencies=0,
                     agent=new_task_data.get('agent', ''),
                     compute_dependencies=False
@@ -307,7 +394,8 @@ class Workflow:
                     for parent_id in task.prev:
                         if parent_id in self.tasks and self.tasks[parent_id].status != 'completed':
                             task.status = 'pending'
-                            task.data = ''
+                            # task.data = ''
+                            task.history = History()
                             changed = True
                             break
 
@@ -316,9 +404,7 @@ class Workflow:
         Determine if a task matches its new definition.
         Comparison is made on objective, next, and prev lists.
         """
-        return (task_obj.objective == new_task_data.get('objective') and
-                task_obj.next == new_task_data.get('next') and
-                task_obj.prev == new_task_data.get('prev'))
+        return (task_obj.objective == new_task_data.get('objective')  and task_obj.prev == new_task_data.get('prev'))
 
     def recalculate_dependencies(self):
         """Recalculate the remaining dependencies for each task."""
@@ -363,9 +449,9 @@ class Workflow:
         """Determine if all tasks have been completed."""
         return all(task.status == 'completed' for task in self.tasks.values())
 
-    def get_pending_tasks(self) -> List[Task]:
+    def get_runable_tasks(self) -> List[Task]:
         """Return all tasks that are pending and ready to run."""
-        return [task for task in self.tasks.values() if task.status == 'pending' and task.remaining_dependencies == 0]
+        return [task for task in self.tasks.values() if (task.status == 'pending' or  task.status == 'failed') and task.remaining_dependencies == 0]
 
     def to_dict(self) -> Dict[str, Any]:
         """Converts the Workflow object to a dictionary for JSON serialization."""

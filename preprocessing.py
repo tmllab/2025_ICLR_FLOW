@@ -1,6 +1,9 @@
 import json
 from collections import defaultdict
 from workflow import Task, Workflow
+from history import History
+import ast
+import astor
 
 
 # read json
@@ -47,9 +50,57 @@ def process_context(context: str):
             'next': [f'task{key}' for key, value in dependencies.items() if i in value],
             'prev': [f'task{elem}' for elem in dependencies[i]],
             'status': 'pending',
-            'data': '',
+            # 'data': '',
+            'history': History(),
             'agent': agents[assigned_agent]['role']
         }
         tasks[f'task{i}'] = Task(**task_info)
     
     return Workflow(tasks)
+def extract_funcs_var(code):
+    """
+    Extracts function definitions, import statements, and relevant global variables 
+    from a code string and generates a new code string containing only these elements.
+    """
+
+    # Parse the code into an AST
+    tree = ast.parse(code)
+
+    # Collect functions, imports, and global assignments
+    selected_nodes = []
+    global_vars = set()
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Import, ast.ImportFrom)):
+            selected_nodes.append(node)
+        elif isinstance(node, ast.Assign):  # Detect global assignments
+            if all(isinstance(target, ast.Name) for target in node.targets):  # Ensure valid variable names
+                global_vars.update(target.id for target in node.targets)
+                selected_nodes.append(node)
+
+    # Create a new AST containing only the selected elements
+    new_tree = ast.Module(body=selected_nodes, type_ignores=[])
+
+    # Convert the AST back into a code string
+    new_code = astor.to_source(new_tree)
+    return new_code
+
+def extract_functions(code):
+    """
+    Extracts function definitions from a code string and generates a new code string containing only the functions.
+    """
+    # Parse the code into an AST
+    tree = ast.parse(code)
+
+    # Traverse the AST to extract function definitions
+    functions = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Import, ast.ImportFrom)):
+            functions.append(node)
+
+    # Create a new AST containing only the extracted functions
+    new_tree = ast.Module(body=functions, type_ignores=[])
+
+    # Convert the AST back into a code string
+    new_code = astor.to_source(new_tree)
+    return new_code

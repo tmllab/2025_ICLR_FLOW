@@ -1,59 +1,88 @@
 
 
+INIT_TEMPLATE = """{
+  "subtasks": [
+    {
+      "id": 0,
+      "objective": "..."
+    },
+    {
+      "id": 1,
+      "objective": "..."
+    },
+    {
+      "id": 2,
+      "objective": "..."
+    },
+    {
+      "id": 3,
+      "objective": "..."
+    },
+    {
+      "id": 4,
+      "objective": "..."
+    }
+  ],
+  "subtask_dependencies": [
+    { "parent": 0, "child": 1 },
+    { "parent": 0, "child": 2 },
+    { "parent": 1, "child": 3 },
+    { "parent": 2, "child": 3 },
+    { "parent": 3, "child": 4 }
+  ],
+  "agents": [
+    {
+      "id": "Agent 0",
+      "role": "...",
+      "subtasks": [0]
+    },
+    {
+      "id": "Agent 1",
+      "role": "...",
+      "subtasks": [1]
+    },
+    {
+      "id": "Agent 2",
+      "role": "...",
+      "subtasks": [2]
+    },
+    {
+      "id": "Agent 3",
+      "role": "...",
+      "subtasks": [3]
+    },
+    {
+      "id": "Agent 4",
+      "role": "...",
+      "subtasks": [4]
+    }
+  ]
+}
 
+"""
 
-TEMPLATE = '''{
-    "id": integer,  // Unique identifier for the task
-    "task": string,  // objective of the main task
-    "subtasks": [
-        {
-            "id": integer,  // Unique identifier for the subtask
-            "objective": string  // objective of the subtask
-        }
-        // Other subtasks...
-    ],
-    "subtask_dependencies": [
-        {
-            "parent": integer,  // ID of the parent subtask that must be completed first
-            "child": integer  // ID of the child subtask that depends on the parent
-        }
-        // Other dependencies...
-    ],
-    "agents": [
-        {
-            "id": string,  //  agent id
-            "role": string,  // Main role of this agent
-            "subtasks": [integer]  // List of IDs for the subtasks this agent can take
-            'collaborates_with':optional //other agent that might need to team up for help
-        }
-        // Other agents...
-    ]
-}'''
-
-
-
-COT_PROMPT = """{
+INIT_WORKFLOW_TEMPLATE = """{
   "task": "Develop an AI Chatbot with Web Integration",
   "subtasks": [
     {
       "id": 0,
-      "objective": "Design the overall system architecture for the AI chatbot and web integration. Provide a detailed, self-contained description of the system components including AI processing, natural language understanding, dialogue management, and web interface. Keep the breakdown minimal to reduce integration risks."
+      "objective": "Design the overall system architecture for the AI chatbot and web integration."
     },
     {
       "id": 1,
-      "objective": "Develop the core AI and NLP module that processes user inputs and generates responses. Describe the algorithms, data flow, and internal logic in a detailed and self-contained manner without relying on external deliverable assurances."
+      "objective": "Develop the core AI and NLP module that processes user inputs and generates responses."
     },
     {
       "id": 2,
-      "objective": "Implement the web integration layer and user interface that enables interaction with the chatbot. Provide a detailed, self-contained description of the UI design, interactive elements, and communication mechanisms with backend services while maintaining simplicity to avoid complex dependencies."
+      "objective": "Implement the web integration layer and user interface that enables interaction with the chatbot."
     },
     {
       "id": 3,
-      "objective": "Integrate the AI/NLP module with the web interface to ensure smooth data exchange and consistent behavior across the system. Include a detailed, self-contained explanation of integration methods and risk mitigation strategies to address potential issues from concurrent development."
+      "objective": "Integrate the AI/NLP module with the web interface to ensure smooth data exchange and consistent behavior across the system."
     },
     {
       "id": 4,
-      "objective": "Deploy the integrated system and set up monitoring protocols to ensure reliability and performance. Provide a detailed, self-contained description of the deployment process and monitoring setup, focusing on reducing risks associated with complex interactions."
+      "objective": "Deploy the integrated system and set up monitoring protocols to ensure reliability and performance."
     }
   ],
   "subtask_dependencies": [
@@ -94,93 +123,224 @@ COT_PROMPT = """{
 
 """
 
+INIT_WORKFLOW_PROMPT = f'''
+You are a workflow planner. Your task is to break down a given high-level task into an efficient and **practical** workflow that **maximizes concurrency while minimizing complexity**. 
 
-SYSTEM_PROMPT = f'''You are a workflow planner. Your objective is to break down a specified overall task into an efficient workflow that encourages parallel execution. Although the entire task can be solved sequentially by one agent, the breakdown is intended solely to improve efficiency through concurrency. At the same time, ensure that the number of subtasks remains optimal to avoid risks of quality degradation from complex interactions. The output must be a strictly valid JSON object that adheres exactly to the specified format, without any additional text or commentary.
-
-**1. Task and Subtask Descriptions:**
-- **Clarity and Self-Containment:**  
-  Each task and subtask must have a clear and complete description. Subtasks must be self-contained so that they can be understood and executed by a single agent.
-- **Concise and Detailed:**  
-  Provide a concise yet comprehensive description for each subtask. Describe exactly what the subtask does, what problem it addresses, and its role in the overall workflow.
-- **Functionality:**  
-  Clearly define the specific operation performed and the criteria for completion. Do not include deliverables in the description; focus solely on a detailed, self-contained explanation of the task.
-
-**2. Dependencies and Parallelization:**
-- **Explicit Dependencies:**  
-  Clearly specify the dependencies between subtasks using a dependency list. Each dependency must identify a parent (prerequisite) and a child (dependent) subtask.
-- **Maximize Concurrency:**  
-  Design the workflow to encourage the parallel execution of subtasks, while keeping the breakdown minimal enough to reduce risks associated with complex interactions.
-
-**3. Agent Assignment:**
-- **Unique Assignment:**  
-  Every subtask must be assigned to exactly one agent. No subtask should be left unassigned.
-- **Sequential Agent IDs and Roles:**  
-  Assign agents with sequential IDs starting from "Agent 0". Provide a clear and descriptive role for each agent.
-
-**4. Additional Instructions:**
-- **No Contractions:**  
-  Use formal language (for example, use "do not" instead of "don't" and "cannot" instead of "can't").
-- **Do Not Repeat the Example:**  
-  Do not repeat any provided example verbatim. Use it only as a reference for the required format and structure.
-
-## Output Template:
-```json
-{TEMPLATE}
-```
+The breakdown is meant to **improve efficiency** through **parallel execution**, but **only** where meaningful. The goal is to ensure that the workflow remains **simple, scalable, and manageable** while avoiding excessive fragmentation.
 
 ---
 
-## Examples for Reference:
-*Overall Task*: "Write a snake game for me that has a UI and website."
+# **Guidelines for Workflow Design**
+## **1. Subtask Clarity and Completeness**
+- **Each subtask must be well-defined, self-contained, and easy to execute by a single agent.**
+- **Ensure that the workflow meets all requirements of the task.**
+- **Keep descriptions concise but informative.** Clearly specify the subtask's purpose, the operation it performs, and its role in the overall workflow.
+- **Avoid unnecessary subtasks.** If a task can be handled efficiently in one step without blocking others, do not split it further.
+
+
+## **2. Dependency Optimization and Parallelization**
+- **Identify only necessary dependencies.** Do not introduce dependencies unless a subtask *genuinely* requires the output of another.
+- **Encourage parallel execution, but do not force it.** If tasks can run independently without affecting quality, prioritize concurrency. However, avoid excessive parallelization that may lead to synchronization issues.
+- **Keep the dependency graph simple.** Avoid deep dependency chains that increase complexity.
+
+## **3. Efficient Agent Assignment**
+- **Assign exactly one agent per subtask.** Every subtask must have a responsible agent.
+- **Use sequential agent IDs starting from "Agent 0".** Assign agents in a clear, structured way.
+- **Ensure logical role assignments.** Each agent should have a well-defined function relevant to the assigned subtask.
+
+## **4. Workflow Simplicity and Maintainability**
+- **Do not overcomplicate the workflow.** A well-balanced workflow has an optimal number of subtasks that enhance efficiency without adding unnecessary coordination overhead.
+- **Maintain clarity and logical flow.** The breakdown should be intuitive, avoiding redundant or trivial steps.
+- **Prioritize quality over extreme concurrency.** Do not split tasks into too many small fragments if it negatively impacts output quality.
+
+## Below is an Output Format Template:
 ```json
-{COT_PROMPT}
+{INIT_WORKFLOW_TEMPLATE}
 ```
+'''
+
+TASK_EXECUTION_PROMPT = '''
+# Role:
+Help me produce a precise and detailed solution for the given task. Follow these instructions exactly:
+
+# Objective & Steps:
+1. Ensure Completeness:
+   - Avoid placeholders or incomplete text.
+   - Your output must meet all requirements of the task.
+   - Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.
+
+2. Maintain Precision and Clarity:
+   - Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.
+   - **Output the answer only without any jusifications**
+
+3. Avoid Repetition:
+   - Do not repeat verbatim any content from previous tasks.
+   - Ensure your output is original and adds value to the workflow.
+
+
+
+# Audience:
+Your output will be used as a solution for the given task, it will be used in the later validation and intergration process.
+
+'''
+TASK_REEXECUTION_PROMPT = f'''
+# Role
+You are a task re-execution agent. Your role is to generate an improved outcome for the given task by carefully considering the provided context, downstream objectives, previous execution results, and feedback.
+
+# Objective & Steps:
+
+1. Apply Corrections and Enhancements:
+   - Address major problems based on previous execution results, and feedback.
+
+2. Ensure Completeness:
+   - Avoid placeholders or incomplete text.
+   - Your output must meet all requirements of the task.
+   - Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.
+
+3. Avoid Repetition:
+   - Do not repeat verbatim content from previous executions.
+
+4. Maintain Precision and Clarity:
+   - Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.
+   - **Output the answer only without any jusifications**
+
+
+# Audience:
+Your output will serve as an improved solution for the task and will undergo further validation and integration into the larger workflow.
+'''
+
+IS_PYTHON_PROMPT = '''
+# Role
+You need to check if the content contains Python code that is **executable and meaningful for testing**.
+
+# Objective and Steps
+- Consider the code meaningful if it:
+  - Defines functions, classes, or logic that performs computations, produces outputs, or manipulates data in a testable manner.
+  - Contains conditions, loops, or logic that demonstrates purposeful behavior.
+  - Includes executable statements that contribute to functionality (e.g., function calls, print statements for output, etc.).
+
+- Consider the code NOT meaningful if it:
+  - Only defines constants, variables, or data structures without any logic or operations.
+  - Contains only comments, imports, or passive declarations without active computation or output.
+
+# Additional Guidance
+- Code that includes partial logic (e.g., incomplete functions with intended logic) can still be meaningful if its purpose is clear.
+- Minor syntax errors should not automatically classify the code as non-meaningful unless they make the entire logic unexecutable.
+
+# Response Format
+- Respond ONLY with "Y" if the code is executable and meaningful for testing.
+- Respond ONLY with "N" if no such code is present.
 '''
 
 
 
-UPDATE_WORKFLOW_PROMPT = '''
+TESTCODE_GENERATION_EXAMPLE = '''
+def run_tests():
 
-You are an responsible workflow updater for a project. Using the `current_workflow` and the latest task progress data, update the workflow by adding, removing, or modifying tasks as needed. Ensure the updated workflow maintains modularity and maximizes parallel execution.
+    failures = []
 
-### Instructions:
+    try:
+        assert add(2, 3) == 5, "Test failed: add(2,3) should return 5"
+    except AssertionError as e:
+        failures.append(str(e))
 
-1. **Update the Workflow**
+    try:
+        assert add(-1, 1) == 0, "Test failed: add(-1,1) should return 0"
+    except AssertionError as e:
+        failures.append(str(e))
 
-    - **Evaluate Completed Tasks**:
-        - **Focus**: Examine only tasks with `"status": "completed"`.
-        - **Check Data**:
-            - Ensure that `"data"` for each task is sufficient, detailed, and directly contributes to the `final_goal`.
+    try:
+        assert add(0, 0) == 0, "Test failed: add(0,0) should return 0"
+    except AssertionError as e:
+        failures.append(str(e))
 
-    - **Assess Workflow Structure**:
-        - **Examine All Tasks**: Review all tasks, including those labeled `"completed"`, `"pending"`, and `"in-progress"`.
-        - **Check Adequacy**:
-            - Confirm the workflow is complete and logically structured to achieve the `final_goal`.
-            - Ensure there are no missing critical tasks or dependencies.
-            - Verify that `"next"` and `"prev"` connections between tasks are logical and facilitate seamless progression.
-        - **Identify Inefficiencies**:
-            - Detect and address unnecessary dependencies, bottlenecks, or redundant steps that hinder the workflow's efficiency.
+    if failures:
+        print("'Error executing code:'")
+        for f in failures:
+            print(f)
+    else:
+        print("All tests passed!")
 
-    - **Allowed Changes**:
-        - **Modify**: Clarify and detail the objectives of tasks with insufficient or vague directives to ensure they meet the `final_goal`.
-        - **Add**: Introduce new tasks with clear, detailed descriptions to fill gaps in data or structure.
-        - **Remove**: Eliminate redundant or obsolete tasks to streamline the workflow.
+run_tests()
+'''
 
-    - **Maintain Logical Flow**:
-        - Reorganize task connections (`"next"` and `"prev"`) to enhance parallel execution and improve overall workflow efficiency.
+TESTCODE_EXAMPLE = '''
+def add(a, b):
+    return a + b
+'''
 
-2. **Output Format**
-    - **If No Changes Are Made**:
-      - Return an empty JSON object to indicate that no modifications were necessary: `{}`.
-    - **If Changes Are Made**:
-      - Return a JSON object containing the updated workflow without including the `"data"` fields to optimize token usage. This JSON should only include the structural changes (task parameters and connections).
+TESTCODE_GENERATION_PROMPT = f'''
+You are a unit test code generator responsible for creating unit test cases for Python code.
 
 
----
+# **Test Code Generation Rules**
+- **Check if the provided code is meaningful for testing.** Skip test generation if the code only defines constants, simple data structures, GUI-related elements, or unused functions.  
+-  Do not generate tests that trigger interactive UI elements or popups.  
+- Create test cases for normal operation.  
+- Include edge cases (e.g., empty inputs, boundary values).  
+- Consider error conditions and invalid inputs.  
+
+# **Test Structure Requirements**  
+- **Each test case must be wrapped in a separate `try/except` block.**  
+- **Each `try/except` block must contain only one assertion.**  
+- Tests must be independent and self-contained.  
+- Clear error messages must be provided for failures.  
+- All test results must be collected and reported.  
+
+
+
+# **Output Format & Example**
+- Do not repeat orginal code for test. 
+- Output should contain only run_tests() function without any explanations or justification.
+- Ensure the test function does not depend on interactive or GUI elements.
+
+
+
+## **OUTPUT FORMAT FOR GENERATED TEST**:
+```python
+{TESTCODE_GENERATION_EXAMPLE}
 ```
+---
+
+## **OUTPUT FORMAT FOR SKIP TEST**:
+```python
+pass
+```
+---
+
+'''
+
+TEXT_VALIDATION_PROMPT = f'''
+You are a subtask result evaluator responsible for determining whether a subtask result meets the subtask requirements, if not, you need to improve it.
+
+# Objective and Steps  
+1. **Completeness and Quality Check:**  
+   - Verify that the result includes all required elements of the task.  
+   - Evaluate whether the output meets overall quality criteria (accuracy, clarity, formatting, and completeness).  
+
+2. **Change Detection:**  
+   - If this is a subsequent result, compare it with previous iterations.  
+   - If the differences are minimal or the result has not significantly improved, consider it "good enough" for finalization.  
+
+3. **Feedback and Escalation:**  
+   - If the result meets the criteria or the improvements are negligible compared to previous iterations, return **"OK"**.  
+   - Otherwise, provide **direct and precise feedback** and **output the improved result in the required format** for finalization.  
+
+4. **Ensure Completeness:**
+   - Your output must meet all requirements of the subtask.
+   - Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.
 
 
-### **An Example Input**:
+# Response Format  
+- **If the result meets the standard:**  
+  - Return **"OK"**.  
+
+- **If the result does not meet the standard:**  
+  - add detailed jusification for the change start with "here are some feedbacks" and directly write an improved new result start with "here are the changes".
+'''
+
+
+UPDATE_INPUT_EXAMPLE = '''
 ```json
 {
   "current_workflow": {
@@ -197,7 +357,7 @@ You are an responsible workflow updater for a project. Using the `current_workfl
       "agent_id": 1,
       "next": [],
       "prev": ["task0"],
-      "status": "completed",
+      "status": "failed",
       "data": ""
     }
   },
@@ -208,10 +368,9 @@ You are an responsible workflow updater for a project. Using the `current_workfl
   "final_goal": "Develop a comprehensive customer satisfaction report that identifies detailed sentiment trends, key feedback themes, and actionable insights for strategic decision-making."
 }
 ```
+'''
 
----
-
-### **Example Output for Required Optimization**:
+UPDATE_OUTPUT_EXAMPLE = '''
 ```json
 {
   "Change Justification": {
@@ -224,27 +383,28 @@ You are an responsible workflow updater for a project. Using the `current_workfl
       "agent_id": 0,
       "next": ["task1"],
       "prev": [],
-      "status": "completed",
+      "status": "completed"
     },
     "task1": {
       "objective": "Analyze the sentiment of collected feedback, categorizing responses into detailed emotional categories using advanced NLP techniques. Emphasis on emotion detection and intensity scoring to enhance data granularity.",
       "agent_id": 1,
       "next": ["task2"],
       "prev": ["task0"],
-      "status": "completed",
+      "status": "pending"
     },
     "task2": {
       "objective": "Extract thematic elements from the feedback using AI-powered text analytics, identify major concerns and suggestions, and prepare a detailed thematic analysis report.",
       "agent_id": 1,
       "next": [],
       "prev": ["task1"],
-      "status": "pending",
+      "status": "pending"
     }
   }
 }
 ```
+'''
 
-### **Example Output for No Required Optimization**:
+WITHOUT_UPDATE_EXAMPLE = '''
 ```json
 {
 
@@ -252,13 +412,74 @@ You are an responsible workflow updater for a project. Using the `current_workfl
 ```
 '''
 
-RUNNER_PROMPT = '''
-  You are a highly capable task solver. Your job is to produce a complete solution for the given subtask. 
-  Follow these instructions exactly:\n
-  1. Ensure your output meets all requirements of the subtask.\n
-  2. Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.\n
-  3. Remember: Your output will be used as input for subsequent tasks; therefore, it must be comprehensive and precise.\n
-  4. Do not repeat verbatim any content from previous tasks.\n
-  5. Use formal language without contractions (e.g., use 'do not' instead of 'don't').\n
-  6. Avoid placeholders or incomplete text.\n\n
+UPDATE_WORKFLOW_PROMPT = f'''
+# Role:
+You are a responsible workflow updater for a project. Using the `current_workflow` and the latest task progress data, update the workflow by adding, removing, or modifying tasks as needed. Ensure the updated workflow maintains modularity and maximizes parallel execution.
+ If a coverage requirement is present and subtasks repeatedly fail to meet it, introduce or refine subtasks to handle more detailed content.
+# Context:
+You will get the input like this: {UPDATE_INPUT_EXAMPLE}
+
+- Assess Workflow Structure:
+  1. Examine All Tasks: Review all tasks, including those labeled "completed", "pending" and "failed".
+     - Check fails:
+       - If a task is labeled "failed", it implies that this task has been rerun multiple times based on various feedback but still fails.
+       - Consider improve the whole workflow by modifying, deleting or adding tasks.
+     - Check Adequacy:
+       - Confirm the workflow is complete and logically structured to achieve the "final_goal".
+       - Ensure there are no missing critical tasks or dependencies.
+       - Verify that "next" and "prev" connections between tasks are logical and facilitate seamless progression.
+     - Identify Inefficiencies:
+       - Detect and address unnecessary dependencies, bottlenecks, or redundant steps that hinder the workflow's efficiency.
+
+- Allowed Changes:
+  - Modify: Clarify and detail the objectives of tasks with insufficient or vague directives to ensure they meet the "final_goal".
+  - Add: Introduce new tasks with clear, detailed descriptions to fill gaps in data or structure.
+  - Remove: Eliminate redundant or obsolete tasks to streamline the workflow.
+
+- Maintain Logical Flow:
+  - Reorganize task connections ("next" and "prev") to enhance parallel execution and improve overall workflow efficiency.
+
+# Response Format and Example:
+- If Changes Are Made:
+  - Return a JSON object containing the updated workflow without including the "data" fields to optimize token usage. This JSON should only include the structural changes (task parameters and connections).
+
+- Example Output for Required Optimization: {UPDATE_OUTPUT_EXAMPLE}
+
+- If No Changes Are Made:
+  - Return an empty JSON object to indicate that no modifications were necessary.
+
+- Example Output for No Required Optimization: {WITHOUT_UPDATE_EXAMPLE}
+'''
+
+RESULT_EXTRACT_PROMPT = '''
+# Role
+You are a task result extractor responsible for condensing the workflow for a specified task into a clear and concise summary.
+
+# Input Format
+RESULT_EXTRACT_PROMPT = """
+# Role
+You are a task result extractor responsible for condensing the workflow for a specified task into a clear, concise, and *correctly formatted* final solution.
+
+# Input Format
+[TASK]: The task description
+[CHATHISTORY]: The workflow of the task
+
+# Objective & Steps
+Your objective is to collect the relevant solutions from all steps of the workflow and produce a final answer that fully addresses the user's original task requirements:
+1. Integrate outputs from all subtasks in the workflow.
+2. Provide a coherent, standalone solution that is not just the last subtask but the entire, improved outcome.
+3. Respect the requested **output format** in the `[TASK]`. 
+   - If the user explicitly says "Write a Python script," produce .py code.
+   - If the user explicitly says "Provide a LaTeX document," produce a .tex file.
+   - Otherwise, output a well-structured plain text or Markdown solution (especially for rewriting requests).
+
+# Audience
+Your output should be the complete solution to the user's original request, in the format they specify or in simple, readable text if no format is specified.
+
+# Output Format & Example
+- If `[TASK]` is *explicitly code-related*, produce the code snippet in plain text, ready to run.
+- If `[TASK]` is *explicitly LaTeX-related*, produce a valid .tex file.
+- If `[TASK]` wants a text rewrite (like a research statement), just output the improved text in plain text/Markdown.
+"""
+```
 '''
