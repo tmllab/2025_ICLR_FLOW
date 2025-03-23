@@ -109,6 +109,37 @@ class History:
         _, fb = self.get_history_by_index(-1)
         return fb
 
+
+    def get_history_as_chat_messages(self) -> list:
+        """
+        Get the history as a list of chat messages with separate roles:
+        - 'assistant' for generated revisions
+        - 'user' for feedback messages
+
+        Returns:
+            list: A list of dictionaries in chat format for OpenAI API
+        """
+        if not self.data:
+            return []
+
+        messages = []
+        for i in range(len(self.data)):
+            result, feedback = self.get_history_by_index(i)
+
+            # Add the assistant's revision
+            messages.append({
+                "role": "assistant",
+                "content": f"---\n## VERSION {i}\n{result.strip()}"
+            })
+
+            # Add the feedback (as if coming from a user or critic)
+            messages.append({
+                "role": "assistant",
+                "content": f"---\n## FEEDBACK to VERSION {i}\n{feedback.strip()}"
+            })
+
+        return messages
+
     def get_history(self) -> str:
         """
         Get a formatted string representation of the entire history.

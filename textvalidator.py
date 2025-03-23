@@ -58,27 +58,31 @@ class textValidator:
             The validation is considered successful if GPT responds with 'OK'
             in a short message (less than 50 characters).
         """
+        system_message = {
+            "role": "system",
+            "content": self.text_validation_prompt  # your base instructions for GPT behavior
+        }
 
-        user_content = f"""
+        user_message = {
+            "role": "user",
+            "content": f"""
+{self.text_validation_prompt}
+                       
 ## Current Task Requirement:
 {task_obj}
 
----
-
-## Current Task change History:
-{history}
 
 ---
 
 ## Current Task Latest Result:
 {result}
         """
+        }
 
-        messages = [
-            {'role': 'system', 'content': self.text_validation_prompt},
-            {'role': 'user', 'content': user_content}
-        ]
-    
+
+        # Step 4: Combine into one message list
+        messages = [system_message] + history + [user_message]
+
         feedback = await self.gpt_client.a_chat_completion(messages)
         with open('validate_log.json', 'a', encoding='utf-8') as file:
             file.write('----------\nGOT TEXT VALIDATION\n----------')

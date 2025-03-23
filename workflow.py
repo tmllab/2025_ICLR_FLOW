@@ -102,7 +102,7 @@ class Task:
         Returns:
             str: Formatted history of all execution attempts and feedback.
         """
-        return self.history.get_history()
+        return self.history.get_history_as_chat_messages()
     
     def get_latest_history(self) -> tuple[str, str]:
         """

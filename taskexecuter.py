@@ -57,11 +57,9 @@ class taskExecuter:
         """
         Execute a task for the first time to get initial results.
 
-        This method constructs a comprehensive prompt that includes:
-        - Context from previously completed tasks
-        - Overall goal of the workflow
-        - Specific subtask to be executed
-        - Objectives of subsequent tasks
+        Constructs a structured chat prompt with:
+        - A system prompt (general behavior and formatting instructions)
+        - A user message (task-specific context and goals)
 
         Args:
             subtask (str): The specific task to be executed.
@@ -71,26 +69,10 @@ class taskExecuter:
 
         Returns:
             str: The execution result from the GPT model.
-
-        Note:
-            The method formats the prompt to ensure the model:
-            1. Focuses only on the assigned subtask
-            2. Uses context appropriately
-            3. Aligns with overall goals
-            4. Provides output suitable for downstream tasks
         """
         logger.info(f"Task '{subtask}' started by agent '{agent_id}'.")
-        
-        user_content = f'''
 
-"# **Instructions:**\n"
-"1. Solve only your assigned subtask, referring to the context only if necessary.\n"
-"2. Ensure your solution aligns with the overall goal and is formatted so that it can be directly used as input for downstream tasks.\n"
-"3. Do not repeat any previous output verbatim.\n"
-"4. Output required result without adding any justifications."
-"5. Strictly follow the format constraint."
----
-
+        user_content = f"""
 # **The Overall Goal**
 {self.overall_task}
 
@@ -101,61 +83,46 @@ class taskExecuter:
 
 ---
 
-# **Downstream Tasks objectivesv**
+# **Downstream Tasks Objectives**
 {next_objective}
-
 
 ---
 
 # **Current Task Requirements**
 {subtask}
-
----
-
-'''
+    """
 
         messages = [
-            {'role': 'system', 'content': self.execute_prompt},
-            {'role': 'user', 'content': user_content}
+            { "role": "system", "content": self.execute_prompt },
+            { "role": "user", "content": user_content }
         ]
-        print("***********run start*********************")
-        print(user_content)
-        print("***********run end*********************")
+
+        print("*********** Execution Prompt *************")
+        for m in messages:
+            print(f"{m['role'].upper()}:\n{m['content']}\n")
+        print("*********** Execution Prompt End *********")
+
         result = await self.gpt_client.a_chat_completion(messages)
 
         return result
 
-    async def re_execute(self, subtask: str, context: str, next_objective: str, result: str, history: str) -> str:
+    async def re_execute(self, subtask: str, context: str, next_objective: str, result: str, history_messages: list) -> str:
         """
         Re-execute a task based on previous results and feedback.
 
-        This method is called when initial execution needs improvement. It provides:
-        - Previous execution history
-        - Original context and objectives
-        - Clear instructions for refinement
-
-        Args:
-            subtask (str): The specific task to be refined.
-            context (str): Context from parent tasks.
-            next_objective (str): Objectives of child tasks.
-            result (str): Previous execution result.
-            history (str): History of previous execution attempts and feedback.
-
-        Returns:
-            str: The refined execution result from the GPT model.
-
-        Note:
-            This method is specifically designed for iterative improvement,
-            taking into account previous attempts and feedback to produce
-            better results.
+        This method uses structured chat history (assistant + user turns)
+        from previous attempts for iterative refinement.
         """
-        user_content = f"""
-"# **Instructions:**\n"
-"1. You need to revise the subtask results based on the latest feedback and historical information.\n"
-"2. Output required result without adding any justifications."
-"3. Strictly follow the format constraint."
----
+        # Step 1: Build the system prompt
+        system_message = {
+            "role": "system",
+            "content": self.re_execute_prompt  # your base instructions for GPT behavior
+        }
 
+        # Step 2: Instruction + current task info as the new user prompt
+        user_message = {
+            "role": "user",
+            "content": f"""
 # **The Overall Goal**
 {self.overall_task}
 
@@ -166,28 +133,27 @@ class taskExecuter:
 
 ---
 
-# **Downstream Tasks objectives**
+# **Downstream Tasks Objectives**
 {next_objective}
 
 ---
 
 # **Current Task Requirements**
 {subtask}
+"""
+        }
 
----
 
-# **Current Task Historical Results and Their Feedbacks**
-{history}
-        """
-        
-        print("***********run start*********************")
-        print(user_content)
-        print("***********run end*********************")
-        messages = [
-            {'role': 'system', 'content': self.re_execute_prompt},
-            {'role': 'user', 'content': user_content}
-        ]
+        # Step 4: Combine into one message list
+        messages = [system_message] + history_messages + [user_message]
+
+        # Optional: Print for debugging
+        print("***********reexecuter start*********************")
+        for m in messages:
+            print(f"{m['role'].upper()}: {m['content']}\n")
+        print("***********reexecuter end*********************")
+
+        # Step 5: Send to GPT
         result = await self.gpt_client.a_chat_completion(messages)
-
 
         return result

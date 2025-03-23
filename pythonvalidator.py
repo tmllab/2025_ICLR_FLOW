@@ -182,27 +182,28 @@ Analyze the given Python code and extract **only** the lines that create or trig
         """
        
 
-        user_content = f"""
+        system_message = {
+            "role": "system",
+            "content": self.generate_test_prompt  # your base instructions for GPT behavior
+        }
+
+        user_message = { 
+            "role": "user",
+            "content": f"""
 # **Current Task Requirement:**
 {task_obj}
 
 ---
 
-# **Current Task Historical Results and Your Feedbacks:**
-{history}
-
----
 
 # **Current Task latest Result based on Your Lastest Feedbak:**
 {result}
         """
+        }
 
-        messages_exe = [
-            {'role': 'system', 'content': self.generate_test_prompt},
-            {'role': 'user', 'content': user_content}
-        ]
+        messages = [system_message] + history + [user_message]
 
-        test_func = await self.gpt_client.a_chat_completion(messages_exe)
+        test_func = await self.gpt_client.a_chat_completion(messages)
         test_func = test_func.strip('```python').strip('```')
 
         return test_func
