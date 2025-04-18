@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Flow: Modularized Agentic Workflow Automation (ICLR'25)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background: #333;
+            color: #fff;
+            padding: 15px 0;
+            text-align: center;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+
+        .feature {
+            background: #fff;
+            margin: 10px;
+            padding: 20px;
+            border-radius: 8px;
+            width: 30%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        code {
+            background-color: #f4f4f4;
+            padding: 4px 6px;
+            border-radius: 4px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            color: white;
+        }
+
+        .installation-code {
+            background-color: #2d2d2d;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            margin: 20px 0;
+            white-space: pre-wrap;
+        }
+
+        .install-btn {
+            background-color: #03dac6;
+            padding: 10px 20px;
+            border: none;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .install-btn:hover {
+            background-color: #03a897;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Flow: Modularized Agentic Workflow Automation (ICLR'25)</h1>
+        <p>A multi-agent framework designed for efficient task automation through modular workflow design and dynamic refinement.</p>
+    </header>
+
+    <main>
+        <h2>Key Features</h2>
+        <div class="feature-list">
+            <div class="feature">
+                <h3>Modular Workflow Design</h3>
+                <p>Workflows are structured as <strong>Activity-on-Vertex (AOV) graphs</strong>, enabling parallel execution while minimizing dependencies.</p>
+            </div>
+            <div class="feature">
+                <h3>Concurrency</h3>
+                <p>Subtasks execute concurrently based on predefined dependencies.</p>
+            </div>
+            <div class="feature">
+                <h3>Dynamic Workflow Refinement</h3>
+                <p>The framework adapts workflows in real-time based on performance feedback.</p>
+            </div>
+            <div class="feature">
+                <h3>Error Handling & Recovery</h3>
+                <p>Auto-validation of subtasks ensures workflow resilience, preventing failures during execution.</p>
+            </div>
+        </div>
+
+        <h2>How It Works</h2>
+        <ul>
+            <li><strong>Workflow Initialization</strong>: Tasks are structured into an AOV graph, and the system selects the most efficient structure.</li>
+            <li><strong>Execution & Dynamic Updates</strong>: Agents process subtasks concurrently and update workflows dynamically during execution.</li>
+            <li><strong>Workflow Refinement</strong>: Failed tasks are reassigned or redesigned to prevent bottlenecks.</li>
+            <li><strong>Subtask Validation</strong>: Validation is performed based on subtask type and feedback, and results are used to improve subsequent executions.</li>
+        </ul>
+
+        <h2>Installation & Usage</h2>
+        <h3>Requirements</h3>
+        <ul>
+            <li>Python 3.8+</li>
+            <li>OpenAI API</li>
+        </ul>
+
+        <h3>Installation</h3>
+        <p>Clone the repository and install the necessary dependencies:</p>
+        <div class="installation-code">
+            <code>git clone https://github.com/tmllab/2025_ICLR_FLOW.git</code><br>
+            <code>cd 2025_ICLR_FLOW</code><br>
+            <code>pip install -r requirements.txt</code>
+        </div>
+
+        <h3>Configuration</h3>
+        <p>Set your API key and model for configuration:</p>
+        <div class="installation-code">
+            <code>export OPENAI_API_KEY="your-api-key"</code>
+        </div>
+        <p>Set OpenAI Model and define your task:</p>
+        <div class="installation-code">
+            <code>GPT_MODEL: str = "your-model"</code><br>
+            <code>overall_task: str = "your-task"</code>
+        </div>
+
+        <h3>Run Flow</h3>
+        <div class="installation-code">
+            <code>python main.py</code>
+        </div>
+
+        <a href="https://github.com/tmllab/2025_ICLR_FLOW" class="install-btn" target="_blank">Visit the GitHub Repository</a>
+
+        <h2>Example Applications</h2>
+        <p>We provide illustrative examples through Jupyter notebooks to help you get started.</p>
+
+        <h2>Citation</h2>
+        <p>If you find Flow useful, please consider citing our work:</p>
+        <pre>
+@article{niu2025flow,
+  title={Flow: Modularized Agentic Workflow Automation},
+  author={Niu, Boye and Song, Yiliao and Lian, Kai and Shen, Yifan and Yao, Yu and Zhang, Kun and Liu, Tongliang},
+  journal={ICLR},
+  year={2025}
+}
+        </pre>
+    </main>
+
+    <footer>
+        <p>Flow is developed by Boye Niu, Yiliao Song, Kai Lian, Yifan Shen, Yu Yao, Kun Zhang, and Tongliang Liu. All rights reserved.</p>
+    </footer>
+</body>
+
+</html>
