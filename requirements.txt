@@ -1,2 +1,0 @@
-networkx==3.3
-openai==1.62.0
