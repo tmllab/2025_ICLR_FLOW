@@ -8,7 +8,6 @@ Auto validation features (e.g., adding unit tests) has been added to main branch
 
 **Flow** is a multi-agent framework designed to enhance task automation and execution efficiency through **modular workflow design** and **dynamic refinement**. By structuring workflows as **Activity-on-Vertex (AOV) graphs**, Flow enables real-time adjustments, supports concurrent execution of subtasks, and optimizes workflow structures dynamically.
 
-An upcoming version of Flow will support tool usage (e.g., code terminal, web browser) and swarm workflow generation. This update will be integrated with **AG2** ([GitHub Repository](https://github.com/ag2ai/ag2)).
 
 ## Key Features
 
