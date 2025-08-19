@@ -1,106 +1,104 @@
 import json
-from collections import defaultdict
 from workflow import Task, Workflow
 from history import History
-import ast
-import astor
-
-
-# read json
-def readjson(context: dict):
-    task = context['task']
-    subtasks = context['subtasks']
-    subtask_dependencies = context['subtask_dependencies']
-    agents = context['agents']
-    return subtasks, subtask_dependencies, agents
 
 def process_context(context: str):
-    # Parse JSON directly (assuming clean JSON from OpenAI JSON object mode)
-    context = json.loads(context)
+    """
+    Process context string and extract workflow data with simple, consistent format.
     
-    # Extract relevant data
-    subtasks = context['subtasks']
-    subtask_dependencies = context['subtask_dependencies']
-    agents = context['agents']
-    
-    # Initialize dependencies and agent-task mappings
-    dependencies = defaultdict(list)
-    agent_task = defaultdict(list)
-
-    # Populate dependencies and agent-task mappings in a single loop
-    for dep in subtask_dependencies:
-        dependencies[dep['child']].append(dep['parent'])
-    
-    for agent in agents:
-        agent_id = int(agent['id'].split()[-1])  # Extract agent ID
-        for subtask in agent['subtasks']:
-            agent_task[subtask].append(agent_id)
-    
-    # Build workflow and convert to Workflow instance
-    tasks = {}
-    for i, task in enumerate(subtasks):
-        assigned_agent = agent_task[i][0] if agent_task[i] else None
-        if assigned_agent is None:
-            raise ValueError(f"No agent assigned for task {i}, ensure agent-task mapping is correct.")
+    Args:
+        context (str): JSON string containing workflow data in format:
+                      {"workflow": {"task0": {...}, ...}, "agents": [...]}
         
+    Returns:
+        Workflow: Processed workflow object
+        
+    Raises:
+        ValueError: If the JSON structure is invalid or missing required fields
+        json.JSONDecodeError: If JSON parsing fails
+    """
+    try:
+        # Parse JSON directly
+        context_dict = json.loads(context)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse JSON response: {str(e)}")
+    
+    # Validate required keys exist
+    required_keys = ['workflow', 'agents']
+    missing_keys = [key for key in required_keys if key not in context_dict]
+    
+    if missing_keys:
+        raise ValueError(f"Missing required keys in GPT response: {missing_keys}. "
+                        f"Available keys: {list(context_dict.keys())}")
+    
+    # Extract workflow and agents
+    workflow_dict = context_dict['workflow']
+    agents = context_dict['agents']
+    
+    # Validate data types
+    if not isinstance(workflow_dict, dict):
+        raise ValueError(f"'workflow' should be a dict, got {type(workflow_dict)}")
+    
+    if not isinstance(agents, list):
+        raise ValueError(f"'agents' should be a list, got {type(agents)}")
+    
+    if not workflow_dict:
+        raise ValueError("'workflow' dict is empty")
+        
+    if not agents:
+        raise ValueError("'agents' list is empty")
+    
+    # Validate agents structure
+    for i, agent in enumerate(agents):
+        if not isinstance(agent, dict):
+            raise ValueError(f"Invalid agent structure at index {i}: {agent}. Expected dict.")
+        
+        required_agent_keys = ['id', 'role']
+        missing_agent_keys = [key for key in required_agent_keys if key not in agent]
+        if missing_agent_keys:
+            raise ValueError(f"Agent missing required keys {missing_agent_keys}: {agent}")
+        
+        # Validate agent ID format
+        try:
+            agent_id = int(agent['id'].split()[-1])  # Extract agent ID from "Agent 0" format
+        except (ValueError, IndexError) as e:
+            raise ValueError(f"Invalid agent ID format '{agent['id']}'. Expected format like 'Agent 0': {e}")
+    
+    # Build tasks directly from workflow dict
+    tasks = {}
+    for task_id, task_data in workflow_dict.items():
+        if not isinstance(task_data, dict):
+            raise ValueError(f"Invalid task structure for '{task_id}': {task_data}. Expected dict.")
+        
+        # Validate required task fields
+        required_task_keys = ['objective', 'agent_id', 'next', 'prev']
+        missing_task_keys = [key for key in required_task_keys if key not in task_data]
+        if missing_task_keys:
+            raise ValueError(f"Task '{task_id}' missing required keys {missing_task_keys}: {task_data}")
+        
+        # Validate agent_id is within bounds
+        agent_id = task_data['agent_id']
+        if not isinstance(agent_id, int) or agent_id >= len(agents):
+            raise ValueError(f"Task '{task_id}' has invalid agent_id {agent_id}. Must be integer < {len(agents)}")
+        
+        # Validate next/prev are lists
+        if not isinstance(task_data['next'], list):
+            raise ValueError(f"Task '{task_id}' 'next' should be a list, got {type(task_data['next'])}")
+        
+        if not isinstance(task_data['prev'], list):
+            raise ValueError(f"Task '{task_id}' 'prev' should be a list, got {type(task_data['prev'])}")
+        
+        # Create task object - status is always 'pending' for new workflows
         task_info = {
-            'id': f'task{i}',
-            'objective': task['objective'],
-            'agent_id': assigned_agent,
-            'next': [f'task{key}' for key, value in dependencies.items() if i in value],
-            'prev': [f'task{elem}' for elem in dependencies[i]],
+            'id': task_id,
+            'objective': task_data['objective'],
+            'agent_id': agent_id,
+            'next': task_data['next'],
+            'prev': task_data['prev'],
             'status': 'pending',
-            # 'data': '',
             'history': History(),
-            'agent': agents[assigned_agent]['role']
+            'agent': agents[agent_id]['role']
         }
-        tasks[f'task{i}'] = Task(**task_info)
+        tasks[task_id] = Task(**task_info)
     
     return Workflow(tasks)
-def extract_funcs_var(code):
-    """
-    Extracts function definitions, import statements, and relevant global variables 
-    from a code string and generates a new code string containing only these elements.
-    """
-
-    # Parse the code into an AST
-    tree = ast.parse(code)
-
-    # Collect functions, imports, and global assignments
-    selected_nodes = []
-    global_vars = set()
-
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Import, ast.ImportFrom)):
-            selected_nodes.append(node)
-        elif isinstance(node, ast.Assign):  # Detect global assignments
-            if all(isinstance(target, ast.Name) for target in node.targets):  # Ensure valid variable names
-                global_vars.update(target.id for target in node.targets)
-                selected_nodes.append(node)
-
-    # Create a new AST containing only the selected elements
-    new_tree = ast.Module(body=selected_nodes, type_ignores=[])
-
-    # Convert the AST back into a code string
-    new_code = astor.to_source(new_tree)
-    return new_code
-
-def extract_functions(code):
-    """
-    Extracts function definitions from a code string and generates a new code string containing only the functions.
-    """
-    # Parse the code into an AST
-    tree = ast.parse(code)
-
-    # Traverse the AST to extract function definitions
-    functions = []
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Import, ast.ImportFrom)):
-            functions.append(node)
-
-    # Create a new AST containing only the extracted functions
-    new_tree = ast.Module(body=functions, type_ignores=[])
-
-    # Convert the AST back into a code string
-    new_code = astor.to_source(new_tree)
-    return new_code

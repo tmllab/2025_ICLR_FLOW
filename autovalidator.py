@@ -52,22 +52,32 @@ class Validator:
             and then confirms if the content is actually executable Python code
             before routing to the appropriate validator.
         """
-        # judge whether the result contains python code
-        temp = solution.lstrip()
-        import re
- 
-    
-
-        # need_unit_test = await self.pythonval.need_validate(solution,task_obj)
-        # if need_unit_test:
-        #     # if the result contains python code
-        #     test_result, status = await self.pythonval.validate(task_obj, solution, history)
-
+        try:
+            # Check if solution contains Python code that should be executed/tested
+            if self._contains_python_code(solution):
+                need_unit_test = await self.pythonval.need_validate(solution, task_obj)
+                
+                if need_unit_test:
+                    # Use intelligent Python validation for executable code
+                    test_result, status = await self.pythonval.validate(task_obj, solution, history)
+                    return test_result, status
             
-        # else:
-        test_result, status =  await self.textval.validate(task_obj, solution, history)
-
-        # unit_test_result = unit_test_result+text_validate_result
+            # Default to text validation for non-executable code or explanatory content
+            test_result, status = await self.textval.validate(task_obj, solution, history)
+            return test_result, status
+            
+        except Exception as e:
+            return f"Validation system error: {str(e)}", 'failed'
+    
+    def _contains_python_code(self, content: str) -> bool:
+        """
+        Simple check to determine if content contains Python code blocks.
         
-        return test_result, status
+        Args:
+            content (str): Content to check
+            
+        Returns:
+            bool: True if Python code is detected
+        """
+        return '```python' in content.lower() or 'def ' in content or 'import ' in content
         

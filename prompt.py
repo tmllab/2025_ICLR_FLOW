@@ -62,61 +62,58 @@ INIT_TEMPLATE = """{
 """
 
 INIT_WORKFLOW_TEMPLATE = """{
-  "task": "Develop an AI Chatbot with Web Integration",
-  "subtasks": [
-    {
-      "id": 0,
-      "objective": "Design the overall system architecture for the AI chatbot and web integration."
+  "workflow": {
+    "task0": {
+      "objective": "Design the overall system architecture for the AI chatbot and web integration.",
+      "agent_id": 0,
+      "next": ["task1", "task2"],
+      "prev": []
     },
-    {
-      "id": 1,
-      "objective": "Develop the core AI and NLP module that processes user inputs and generates responses."
+    "task1": {
+      "objective": "Develop the core AI and NLP module that processes user inputs and generates responses.",
+      "agent_id": 1,
+      "next": ["task3"],
+      "prev": ["task0"]
     },
-    {
-      "id": 2,
-      "objective": "Implement the web integration layer and user interface that enables interaction with the chatbot."
+    "task2": {
+      "objective": "Implement the web integration layer and user interface that enables interaction with the chatbot.",
+      "agent_id": 2,
+      "next": ["task3"],
+      "prev": ["task0"]
     },
-    {
-      "id": 3,
-      "objective": "Integrate the AI/NLP module with the web interface to ensure smooth data exchange and consistent behavior across the system."
+    "task3": {
+      "objective": "Integrate the AI/NLP module with the web interface to ensure smooth data exchange and consistent behavior across the system.",
+      "agent_id": 3,
+      "next": ["task4"],
+      "prev": ["task1", "task2"]
     },
-    {
-      "id": 4,
-      "objective": "Deploy the integrated system and set up monitoring protocols to ensure reliability and performance."
+    "task4": {
+      "objective": "Deploy the integrated system and set up monitoring protocols to ensure reliability and performance.",
+      "agent_id": 4,
+      "next": [],
+      "prev": ["task3"]
     }
-  ],
-  "subtask_dependencies": [
-    { "parent": 0, "child": 1 },
-    { "parent": 0, "child": 2 },
-    { "parent": 1, "child": 3 },
-    { "parent": 2, "child": 3 },
-    { "parent": 3, "child": 4 }
-  ],
+  },
   "agents": [
     {
       "id": "Agent 0",
-      "role": "System Architect",
-      "subtasks": [0]
+      "role": "System Architect"
     },
     {
-      "id": "Agent 1",
-      "role": "AI/NLP Developer",
-      "subtasks": [1]
+      "id": "Agent 1", 
+      "role": "AI/NLP Developer"
     },
     {
       "id": "Agent 2",
-      "role": "Web Developer",
-      "subtasks": [2]
+      "role": "Web Developer"
     },
     {
       "id": "Agent 3",
-      "role": "Integration Specialist",
-      "subtasks": [3]
+      "role": "Integration Specialist"
     },
     {
       "id": "Agent 4",
-      "role": "Deployment Engineer",
-      "subtasks": [4]
+      "role": "Deployment Engineer"
     }
   ]
 }
@@ -144,19 +141,36 @@ The breakdown is meant to **improve efficiency** through **parallel execution**,
 - **Keep the dependency graph simple.** Avoid deep dependency chains that increase complexity.
 
 ## **3. Efficient Agent Assignment**
-- **Assign exactly one agent per subtask.** Every subtask must have a responsible agent.
+- **Assign exactly one agent per task using agent_id (0, 1, 2, etc.).** Every task must have a responsible agent.
 - **Use sequential agent IDs starting from "Agent 0".** Assign agents in a clear, structured way.
-- **Ensure logical role assignments.** Each agent should have a well-defined function relevant to the assigned subtask.
+- **Ensure logical role assignments.** Each agent should have a well-defined function relevant to the assigned task.
 
 ## **4. Workflow Simplicity and Maintainability**
 - **Do not overcomplicate the workflow.** A well-balanced workflow has an optimal number of subtasks that enhance efficiency without adding unnecessary coordination overhead.
 - **Maintain clarity and logical flow.** The breakdown should be intuitive, avoiding redundant or trivial steps.
 - **Prioritize quality over extreme concurrency.** Do not split tasks into too many small fragments if it negatively impacts output quality.
 
-## Below is an Output Format Template:
+## **Required JSON Output Format:**
+
+Your response must be a JSON object with exactly this structure:
+- **"workflow"**: A dict where keys are task IDs ("task0", "task1", etc.) and values contain:
+  - **"objective"**: Clear description of what this task accomplishes
+  - **"agent_id"**: Integer (0, 1, 2, etc.) identifying which agent handles this task
+  - **"next"**: List of task IDs that depend on this task (can be empty [])
+  - **"prev"**: List of task IDs this task depends on (can be empty [])
+- **"agents"**: A list of agent objects with:
+  - **"id"**: String like "Agent 0", "Agent 1", etc.
+  - **"role"**: Descriptive role name for the agent
+
+**Example Template:**
 ```json
 {INIT_WORKFLOW_TEMPLATE}
 ```
+
+**Important Notes:**
+- Do NOT include "status" or "data" fields - these are managed by the system
+- Task dependencies are expressed through "next" and "prev" arrays
+- Agent IDs must be consistent between workflow tasks and agents list
 '''
 
 TASK_EXECUTION_PROMPT = '''
@@ -270,15 +284,33 @@ def add(a, b):
 '''
 
 TESTCODE_GENERATION_PROMPT = f'''
-You are a unit test code generator responsible for creating unit test cases for Python code.
+You are a smart Python code validator responsible for creating appropriate validation tests based on the code complexity and type.
 
+# **Code Analysis & Test Strategy**
 
-# **Test Code Generation Rules**
-- **Check if the provided code is meaningful for testing.** Skip test generation if the code only defines constants, simple data structures, GUI-related elements, or unused functions.  
--  Do not generate tests that trigger interactive UI elements or popups.  
-- Create test cases for normal operation.  
-- Include edge cases (e.g., empty inputs, boundary values).  
-- Consider error conditions and invalid inputs.  
+1. **Simple Functions/Utilities**: Generate unit tests with assertions
+2. **Complex Applications (Games/GUIs/Interactive)**: Generate syntax and import validation only
+3. **Constants/Data/Incomplete Code**: Skip testing entirely
+
+# **Decision Rules**
+
+**GENERATE UNIT TESTS** if code contains:
+- Pure functions with clear inputs/outputs (math, string processing, algorithms)
+- Utility classes without external dependencies
+- Data processing functions
+- Simple business logic
+
+**GENERATE SYNTAX/IMPORT VALIDATION** if code contains:
+- Game development (Pygame, Tkinter, etc.)
+- Web frameworks (Flask, Django, etc.)
+- GUI applications with event loops
+- Real-time or interactive systems
+- Complex class hierarchies with external dependencies
+
+**SKIP TESTING** if code contains:
+- Only constants, variables, or data structures
+- Incomplete functions or pseudocode
+- Only imports or comments
 
 # **Test Structure Requirements**  
 - **Each test case must be wrapped in a separate `try/except` block.**  
@@ -287,27 +319,58 @@ You are a unit test code generator responsible for creating unit test cases for 
 - Clear error messages must be provided for failures.  
 - All test results must be collected and reported.  
 
+# **Output Format & Examples**
 
-
-# **Output Format & Example**
-- Do not repeat orginal code for test. 
-- Output should contain only run_tests() function without any explanations or justification.
-- Ensure the test function does not depend on interactive or GUI elements.
-
-
-
-## **OUTPUT FORMAT FOR GENERATED TEST**:
+## **OUTPUT FORMAT FOR UNIT TESTS**:
 ```python
 {TESTCODE_GENERATION_EXAMPLE}
 ```
----
+
+## **OUTPUT FORMAT FOR SYNTAX/IMPORT VALIDATION**:
+```python
+def run_tests():
+    failures = []
+    
+    try:
+        # Test syntax by attempting compilation
+        compile(open(__file__).read(), __file__, 'exec')
+    except SyntaxError as e:
+        failures.append(f"Syntax Error: {{e}}")
+    
+    try:
+        # Test that all imports work
+        import sys
+        import os
+        # Add other imports from the code here
+    except ImportError as e:
+        failures.append(f"Import Error: {{e}}")
+    
+    try:
+        # Test that main classes/functions can be instantiated/called without errors
+        # Example: game = GameClass()  # Don't actually run the game loop
+    except Exception as e:
+        failures.append(f"Initialization Error: {{e}}")
+    
+    if failures:
+        print("Error executing code:")
+        for f in failures:
+            print(f)
+    else:
+        print("All validation checks passed!")
+
+run_tests()
+```
 
 ## **OUTPUT FORMAT FOR SKIP TEST**:
 ```python
 pass
 ```
----
 
+# **Guidelines**
+- Do not repeat original code in tests
+- Output should contain only run_tests() function without explanations
+- For complex applications, focus on validation rather than functionality testing
+- Ensure tests don't trigger GUI windows or interactive elements
 '''
 
 TEXT_VALIDATION_PROMPT = f'''

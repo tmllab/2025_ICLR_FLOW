@@ -33,7 +33,7 @@ def main():
 
     
 
-    overall_task: str = nips_website
+    overall_task: str = tetris_bjeweled
 
     candidate_graphs: int = 5
     refine_threshold: int = 3

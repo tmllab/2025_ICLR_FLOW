@@ -65,8 +65,18 @@ class WorkflowManager:
 
         try:
             processed_workflow = preprocessing.process_context(response)
+        except (ValueError, json.JSONDecodeError) as e:
+            logger.error(f"Error processing GPT response: {e}")
+            logger.error(f"Raw GPT response: {response}")
+            # Provide more context about what went wrong
+            error_msg = f"Failed to process workflow from GPT response: {str(e)}\n"
+            error_msg += f"This usually means GPT returned unexpected JSON structure.\n"
+            error_msg += f"Expected keys: ['subtasks', 'subtask_dependencies', 'agents']\n"
+            error_msg += f"Raw response: {response[:500]}..." if len(response) > 500 else f"Raw response: {response}"
+            raise ValueError(error_msg) from e
         except Exception as e:
-            logger.error(f"IndexError in processing GPT response: {e}")
+            logger.error(f"Unexpected error in processing GPT response: {e}")
+            logger.error(f"Raw GPT response: {response}")
             raise
         return processed_workflow
 
@@ -112,19 +122,30 @@ class WorkflowManager:
         """
         results: list[Workflow] = []
 
+        failed_attempts = 0
         with concurrent.futures.ThreadPoolExecutor(max_workers=n_candidate_graphs) as executor:
             futures = [executor.submit(self.get_workflow) for _ in range(n_candidate_graphs)]
             for future in concurrent.futures.as_completed(futures):
                 try:
                     result = future.result()
-                    # print(result)
                     if isinstance(result, Workflow):
                         results.append(result)
+                        logger.info(f"Successfully generated workflow candidate {len(results)}")
                 except Exception as e:
-                    logger.error(f"An error occurred during parallel execution: {e}")
+                    failed_attempts += 1
+                    logger.error(f"Failed to generate workflow candidate {failed_attempts}: {str(e)[:200]}...")
+                    
+                    # Log more detail for first few failures
+                    if failed_attempts <= 3:
+                        logger.error(f"Detailed error for attempt {failed_attempts}: {e}")
 
+        logger.info(f"Workflow generation complete: {len(results)} successful, {failed_attempts} failed")
+        
         if not results:
-            raise ValueError("All parallel iterations failed. No results to compare.")
+            error_msg = f"All {n_candidate_graphs} parallel workflow generation attempts failed. "
+            error_msg += "This usually indicates an issue with GPT response format or JSON parsing. "
+            error_msg += "Check the logs above for specific error details."
+            raise ValueError(error_msg)
         # print(results)
     
         best_workflow = self.compare_results(results)
