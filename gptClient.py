@@ -37,13 +37,14 @@ class GPTClient:
         self.client = OpenAI(api_key=self.api_key)
         self.a_client = AsyncOpenAI(api_key=self.api_key)
         
-    async def a_chat_completion(self, messages: List[Dict[str, Any]], temperature: float = None) -> str:
+    async def a_chat_completion(self, messages: List[Dict[str, Any]], temperature: float = None, response_format: Dict[str, Any] = None) -> str:
         """
         Asynchronously generate a chat completion response.
 
         Args:
             messages (List[Dict[str, Any]]): List of message dictionaries with 'role' and 'content'.
             temperature (float, optional): Override default temperature. Defaults to None.
+            response_format (Dict[str, Any], optional): Response format specification. Defaults to None.
 
         Returns:
             str: Generated response content from the model.
@@ -53,20 +54,25 @@ class GPTClient:
             {'role': 'user'|'system'|'assistant', 'content': 'message text'}
         """
         temp = temperature if temperature is not None else self.temperature
-        response = await self.a_client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            temperature=temp
-        )
+        kwargs = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temp
+        }
+        if response_format:
+            kwargs["response_format"] = response_format
+            
+        response = await self.a_client.chat.completions.create(**kwargs)
         return response.choices[0].message.content
     
-    def chat_completion(self, messages: List[Dict[str, Any]], temperature: float = None) -> str:
+    def chat_completion(self, messages: List[Dict[str, Any]], temperature: float = None, response_format: Dict[str, Any] = None) -> str:
         """
         Synchronously generate a chat completion response.
 
         Args:
             messages (List[Dict[str, Any]]): List of message dictionaries with 'role' and 'content'.
             temperature (float, optional): Override default temperature. Defaults to None.
+            response_format (Dict[str, Any], optional): Response format specification. Defaults to None.
 
         Returns:
             str: Generated response content from the model.
@@ -76,11 +82,15 @@ class GPTClient:
             {'role': 'user'|'system'|'assistant', 'content': 'message text'}
         """
         temp = temperature if temperature is not None else self.temperature
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            temperature=temp
-        )
+        kwargs = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temp
+        }
+        if response_format:
+            kwargs["response_format"] = response_format
+            
+        response = self.client.chat.completions.create(**kwargs)
         return response.choices[0].message.content
 
 async def print_response(task):

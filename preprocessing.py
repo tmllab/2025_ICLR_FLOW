@@ -15,8 +15,8 @@ def readjson(context: dict):
     return subtasks, subtask_dependencies, agents
 
 def process_context(context: str):
-    # Strip and parse JSON
-    context = json.loads(context.strip('```json').strip('```'))
+    # Parse JSON directly (assuming clean JSON from OpenAI JSON object mode)
+    context = json.loads(context)
     
     # Extract relevant data
     subtasks = context['subtasks']

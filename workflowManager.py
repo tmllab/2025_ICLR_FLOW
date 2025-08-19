@@ -59,7 +59,8 @@ class WorkflowManager:
             {'role': 'system', 'content': self.system_prompt},
             {'role': 'user', 'content': user_content}
         ]
-        response = self.gpt_client.chat_completion(messages)
+        response_format = {"type": "json_object"}
+        response = self.gpt_client.chat_completion(messages, response_format=response_format)
         logger.info(f"GPT Response: {response}")
 
         try:
@@ -160,9 +161,8 @@ class WorkflowManager:
             {"role": "system", "content": prompt.UPDATE_WORKFLOW_PROMPT},
             {"role": "user", "content": json.dumps(simplified_workflow, indent=4)}
         ]
-        response_text = await self.gpt_client.a_chat_completion(messages)
-        # Remove any markdown wrappers
-        response_text = response_text.strip('```json').strip('```')
+        response_format = {"type": "json_object"}
+        response_text = await self.gpt_client.a_chat_completion(messages, response_format=response_format)
 
         try:
             response_data = json.loads(response_text)

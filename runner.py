@@ -85,20 +85,36 @@ class AsyncRunner:
         
 
         result = await self.executer.execute(task_objective, agent_id, context, next_objective)
+        
+        # If validation is disabled, mark as completed immediately
         if self.max_validation_itt == 0:
             task_obj.save_history(result, '')
             task_obj.set_status("completed")
+            return result
 
-        for _ in range(self.max_validation_itt):
-
-            feedback, new_status = await self.validator.validate(task_objective, result, task_obj.get_history())
-            task_obj.save_history(result, feedback)
-            task_obj.set_status(new_status)
-
-            if new_status == 'completed':
-                break
+        # Validation loop with re-execution on failure
+        for iteration in range(self.max_validation_itt):
+            logger.info(f"Validation iteration {iteration + 1}/{self.max_validation_itt} for task '{task_id}'")
             
-            result = await self.executer.re_execute(task_objective, context, next_objective, result, task_obj.get_history())          
+            # Validate the current result
+            feedback, new_status = await self.validator.validate(task_obj.objective, result, task_obj.get_history())
+            
+            if new_status == 'completed':
+                logger.info(f"Task '{task_id}' validated successfully after {iteration + 1} iteration(s)")
+                task_obj.save_history(result, feedback)
+                task_obj.set_status("completed")
+                return result
+            
+            # Validation failed - save the failed attempt
+            task_obj.save_history(result, feedback)
+            logger.info(f"Validation failed for task '{task_id}': {feedback[:100]}...")
+            
+            # Re-execute for the next validation attempt (except on last iteration)
+            if iteration < self.max_validation_itt - 1:
+                logger.info(f"Re-executing task '{task_id}' for attempt {iteration + 2}")
+                result = await self.executer.re_execute(task_objective, context, next_objective, result, task_obj.get_history())
 
-
+        # If we exit the loop, all validation attempts failed
+        logger.warning(f"Task '{task_id}' failed validation after {self.max_validation_itt} attempts. Marking as failed.")
+        task_obj.set_status("failed")
         return result

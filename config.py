@@ -1,8 +1,8 @@
 class Config:
     """Centralized static configuration parameters."""
 
-    OPENAI_API_KEY: str = "your-api-key"
-    GPT_MODEL: str = "gpt-4o-mini"
+    OPENAI_API_KEY: str = ""
+    GPT_MODEL: str = "o4-mini"
     TEMPERATURE: float = 1
 
     @classmethod

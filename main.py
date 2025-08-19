@@ -31,14 +31,14 @@ def main():
 
 
     
-    overall_task = '''1. Lecture slide:
-    I am a lecturer. I am teaching the machine learning coure for research students. Please generate latex code for lecture slide for different reinforcement learning algorithms.
-    Note that:
-    1). Note that the lecture duration is 2 hour, so we need to generate 30 pages.
-    2). for each reinforcement learning algorithms, the slide should include motivation, problem and intuitive solution and detailed math equations.
-    3). Please make sure the the lecture have a good self-contain.
-    '''
-    # overall_task: str = '''Develop a game that fuses Tetris and Bejeweled mechanics. Falling tetrominoes should lock into a grid and transform into colored gems. The game must support both Tetris line-clearing and Bejeweled match-3 clearing, triggering chain reactions and bonus points. Include a GUI (using a framework like Pygame) that displays the game grid, current score, and next tetromino preview, along with smooth animations. No sound effects are needed'''
+    # overall_task = '''1. Lecture slide:
+    # I am a lecturer. I am teaching the machine learning coure for research students. Please generate latex code for lecture slide for different reinforcement learning algorithms.
+    # Note that:
+    # 1). Note that the lecture duration is 2 hour, so we need to generate 30 pages.
+    # 2). for each reinforcement learning algorithms, the slide should include motivation, problem and intuitive solution and detailed math equations.
+    # 3). Please make sure the the lecture have a good self-contain.
+    # '''
+    overall_task: str = '''Develop a game that fuses Tetris and Bejeweled mechanics. Falling tetrominoes should lock into a grid and transform into colored gems. The game must support both Tetris line-clearing and Bejeweled match-3 clearing, triggering chain reactions and bonus points. Include a GUI (using a framework like Pygame) that displays the game grid, current score, and next tetromino preview, along with smooth animations. No sound effects are needed'''
 
     candidate_graphs: int = 5
     refine_threshold: int = 3
