@@ -2,6 +2,7 @@ from gptClient import GPTClient
 from config import Config
 import json
 import prompt
+from logging_config import get_logger, log_validation_result
 
 class textValidator:
     """
@@ -32,6 +33,7 @@ class textValidator:
             temperature=Config.TEMPERATURE
         )
         self.text_validation_prompt = prompt.TEXT_VALIDATION_PROMPT
+        self.logger = get_logger('validation')
 
     def _is_validation_successful(self, feedback: str) -> bool:
         """
@@ -58,7 +60,7 @@ class textValidator:
             
         return False
 
-    async def validate(self, task_obj, result, history) -> tuple[str, str]:
+    async def validate(self, task_obj, result, history, overall_task: str = None, output_format: str = None) -> tuple[str, str]:
         """
         Validate text-based task results using GPT with improved logic.
 
@@ -85,17 +87,26 @@ class textValidator:
                 "content": self.text_validation_prompt
             }
 
+            # Build user message with overall context
+            content_parts = []
+            
+            # Add overall task context if available
+            if overall_task:
+                content_parts.append(f"## Overall User Goal:\n{overall_task}\n\n---\n")
+            
+            content_parts.extend([
+                f"## Current Task Requirement:\n{task_obj}\n\n---\n"
+            ])
+            
+            # Add output format requirement if specified
+            if output_format and output_format.strip():
+                content_parts.append(f"## Required Output Format:\n{output_format}\n\n---\n")
+            
+            content_parts.append(f"## Current Task Latest Result:\n{result}")
+            
             user_message = {
                 "role": "user",
-                "content": f"""
-## Current Task Requirement:
-{task_obj}
-
----
-
-## Current Task Latest Result:
-{result}
-            """
+                "content": "".join(content_parts)
             }
 
             # Combine messages properly
@@ -106,25 +117,28 @@ class textValidator:
 
             feedback = await self.gpt_client.a_chat_completion(messages)
             
-            # Log validation results with better error handling
-            try:
-                with open('validate_log.json', 'a', encoding='utf-8') as file:
-                    file.write('\n----------\nTEXT VALIDATION LOG\n----------\n')
-                    log_data = {
-                        'task_obj': task_obj,
-                        'result': result[:500] + '...' if len(result) > 500 else result,
-                        'feedback': feedback
-                    }
-                    json.dump(log_data, file, indent=2, ensure_ascii=False)
-                    file.write('\n')
-            except Exception as log_error:
-                print(f"Warning: Failed to log validation results: {log_error}")
-            
             # Determine validation success using improved logic
             if self._is_validation_successful(feedback):
-                return "there are no additional problems", 'completed'
+                status = 'completed'
+                result_msg = "there are no additional problems"
+                self.logger.info("Text validation passed")
             else:
-                return feedback, 'failed'
+                status = 'failed'
+                result_msg = feedback
+                self.logger.warning(f"Text validation failed: {feedback[:100]}...")
+            
+            # Log validation results using structured logging
+            task_id = getattr(history, 'task_id', 'unknown') if history and hasattr(history, 'task_id') else 'unknown'
+            log_validation_result(
+                task_id=task_id,
+                task_obj=task_obj,
+                result=result,
+                validation_type='text',
+                status=status,
+                feedback=feedback
+            )
+            
+            return result_msg, status
                 
         except Exception as e:
             return f"Validation error: {str(e)}", 'failed'

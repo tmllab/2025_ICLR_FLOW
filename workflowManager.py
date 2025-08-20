@@ -1,23 +1,17 @@
 import json
-import logging
 import concurrent.futures
-import logging
 from config import Config
 import preprocessing
 from workflow import Workflow
 from gptClient import GPTClient
 import prompt
+from logging_config import get_logger, log_workflow_event, log_intermediate_result, save_intermediate_snapshot, get_run_directory
 
 
 # -----------------------------------------------------------------------------
 # Configuration and Logging Setup
 # -----------------------------------------------------------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
-logger = logging.getLogger(__name__)
+logger = get_logger('workflow')
 
 
 # -----------------------------------------------------------------------------
@@ -42,13 +36,73 @@ class WorkflowManager:
         """
         Refines the current workflow based on completed tasks.
         """
-        logger.info("Refining workflow...")
-        # TODO the data for updating should include more information, e.g., tasks status and test info
+        logger.info("Starting workflow refinement...")
+        
+        # Log pre-refinement state as intermediate result
         current_data = {tid: task.__dict__ for tid, task in self.workflow.tasks.items()}
+        
+        log_intermediate_result(
+            task_id="workflow_refinement",
+            iteration=1,
+            result_type="workflow_pre_refinement",
+            data={
+                "total_tasks": len(current_data),
+                "completed_tasks": sum(1 for task in current_data.values() if task.get('status') == 'completed'),
+                "pending_tasks": sum(1 for task in current_data.values() if task.get('status') == 'pending'),
+                "failed_tasks": sum(1 for task in current_data.values() if task.get('status') == 'failed')
+            },
+            status="refinement_starting"
+        )
+        
+        # Save pre-refinement workflow snapshot
+        save_intermediate_snapshot(
+            "workflow_pre_refinement.json",
+            {
+                "workflow_tasks": current_data,
+                "workflow_structure": self.workflow.to_dict()
+            },
+            "Workflow state before refinement process",
+            task_id="workflow_refinement",
+            iteration=1
+        )
+        
         new_workflow_data = await self.optimize_workflow(current_data)
 
         # Merge new data and recalculate dependencies
         self.workflow.merge_workflow(new_workflow_data)
+        
+        # Log post-refinement state as intermediate result
+        updated_data = {tid: task.__dict__ for tid, task in self.workflow.tasks.items()}
+        
+        log_intermediate_result(
+            task_id="workflow_refinement",
+            iteration=2,
+            result_type="workflow_post_refinement",
+            data={
+                "total_tasks_after": len(updated_data),
+                "new_tasks_added": len(updated_data) - len(current_data),
+                "refinement_completed": True
+            },
+            status="refinement_completed"
+        )
+        
+        # Save post-refinement workflow snapshot
+        save_intermediate_snapshot(
+            "workflow_post_refinement.json",
+            {
+                "refined_workflow_tasks": updated_data,
+                "refined_workflow_structure": self.workflow.to_dict(),
+                "changes_summary": {
+                    "tasks_before": len(current_data),
+                    "tasks_after": len(updated_data),
+                    "net_change": len(updated_data) - len(current_data)
+                }
+            },
+            "Workflow state after refinement process",
+            task_id="workflow_refinement",
+            iteration=2
+        )
+        
         logger.info("Workflow refinement complete.")
 
     def get_workflow(self) -> Workflow:
@@ -89,11 +143,9 @@ class WorkflowManager:
         best_score = float('inf')
         dependency_complexities = [workflow.calculate_dependency_complexity() for workflow in all_result]
         parallelisms = [workflow.calculate_average_parallelism() for workflow in all_result]
-        print('Comparing...\n Here is the detailed data.')
-        print('Dependency complexities: ')
-        print(dependency_complexities)
-        print('Parallelisms: ')
-        print(parallelisms)
+        logger.info(f'Comparing {len(all_result)} workflow candidates...')
+        logger.info(f'Dependency complexities: {dependency_complexities}')
+        logger.info(f'Parallelisms: {parallelisms}')
             
         mean_dependency_complexity = sum(dependency_complexities) / len(dependency_complexities)
         mean_parallelism = sum(parallelisms) / len(parallelisms)
@@ -112,6 +164,22 @@ class WorkflowManager:
             if score < best_score:
                 best_score = score
                 best_workflow = workflow
+
+        # Save workflow candidates comparison as intermediate result
+        log_intermediate_result(
+            task_id="workflow_initialization",
+            iteration=1,
+            result_type="workflow_candidates_comparison",
+            data={
+                "total_candidates": len(all_result),
+                "dependency_complexities": dependency_complexities,
+                "parallelisms": parallelisms,
+                "best_workflow_score": best_score,
+                "mean_dependency_complexity": mean_dependency_complexity,
+                "mean_parallelism": mean_parallelism
+            },
+            status="candidate_selection_completed"
+        )
 
         return best_workflow
     
@@ -146,12 +214,14 @@ class WorkflowManager:
             error_msg += "This usually indicates an issue with GPT response format or JSON parsing. "
             error_msg += "Check the logs above for specific error details."
             raise ValueError(error_msg)
-        # print(results)
     
         best_workflow = self.compare_results(results)
         self.workflow = best_workflow
 
-        best_workflow.to_json("initflow.json")
+        # Save initflow.json to the run directory
+        initflow_path = get_run_directory() / "initflow.json"
+        best_workflow.to_json(str(initflow_path))
+        logger.info(f"Initial workflow saved to {initflow_path}")
 
 
 
@@ -187,9 +257,14 @@ class WorkflowManager:
 
         try:
             response_data = json.loads(response_text)
-            with open('optimize_log.json', 'a') as file:
-                json.dump(response_data, file, indent=4)
-                file.write("\n")
+            log_workflow_event(
+                event_type='workflow_optimization',
+                data={
+                    'response_data': response_data,
+                    'simplified_workflow_size': len(simplified_workflow),
+                    'optimization_requested': True
+                }
+            )
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse JSON: {e}\nGPT response: {response_text}")
             return current_workflow

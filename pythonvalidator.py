@@ -1,8 +1,8 @@
 import asyncio
 from gptClient import GPTClient
 from config import Config
-import json
 from code_test_module import CodeTester
+from logging_config import get_logger, log_validation_result
 
 class pythonValidator:
     """
@@ -32,8 +32,9 @@ class pythonValidator:
             temperature=Config.TEMPERATURE
         )
         self.code_tester = CodeTester()
+        self.logger = get_logger('validation')
 
-    async def validate(self, task_obj, result, history) -> tuple[str, str]:
+    async def validate(self, task_obj, result, history, overall_task: str = None, output_format: str = None) -> tuple[str, str]:
         """
         Validate Python code using intelligent testing strategies.
 
@@ -53,39 +54,39 @@ class pythonValidator:
                            status can be 'completed' or 'failed'.
         """
         try:
-            print("********Starting intelligent Python validation************")
+            self.logger.info("Starting intelligent Python code validation")
             
             # Clean the code
             code_for_test = result.strip('```python').strip('```').strip()
             
             if not code_for_test:
+                self.logger.warning("No Python code found to validate")
                 return "No Python code found to validate", 'failed'
             
             # Use the intelligent code tester
             test_result, status = await self.code_tester.test_code(code_for_test, str(task_obj))
             
-            # Log validation results
-            with open('validate_log.json', 'a', encoding='utf-8') as file:
-                file.write('\n----------\nINTELLIGENT PYTHON VALIDATION\n----------\n')
-                log_data = {
-                    'task_obj': str(task_obj),
-                    'result': code_for_test[:500] + '...' if len(code_for_test) > 500 else code_for_test,
-                    'test_result': test_result,
-                    'status': status
-                }
-                json.dump(log_data, file, indent=2, ensure_ascii=False)
-                file.write('\n')
+            # Log validation results using structured logging
+            task_id = getattr(history, 'task_id', 'unknown') if hasattr(history, 'task_id') else 'unknown'
+            log_validation_result(
+                task_id=task_id,
+                task_obj=str(task_obj),
+                result=code_for_test,
+                validation_type='python_intelligent',
+                status=status,
+                feedback=test_result
+            )
             
             if status == 'completed':
-                print('***Python code validation passed***')
+                self.logger.info("Python code validation passed")
                 return f"### **Code Validation Results:**\n{test_result}", 'completed'
             else:
-                print('***Python code validation failed***')
+                self.logger.warning(f"Python code validation failed: {test_result[:100]}...")
                 return f"### **Code Validation Issues:**\n{test_result}", 'failed'
                 
         except Exception as e:
             error_msg = f"Validation system error: {str(e)}"
-            print(f"***{error_msg}***")
+            self.logger.error(error_msg, exc_info=True)
             return error_msg, 'failed'
     
     async def need_validate(self, result, task_obj) -> bool:
@@ -99,7 +100,7 @@ class pythonValidator:
         Returns:
             bool: True if code should be validated, False otherwise
         """
-        print('------Run pythonValidator.need_validate()------')
+        self.logger.debug(f"Determining if Python code validation is needed for task: {task_obj[:50]}...")
         
         user_content = f'''
 Determine whether the provided Python code should be **unit tested** based on the task objective and its generated result.

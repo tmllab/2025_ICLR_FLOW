@@ -5,16 +5,13 @@ from workflow import Workflow
 from autovalidator import Validator
 from workflow import Task
 import prompt
+from logging_config import get_logger, log_intermediate_result, save_intermediate_snapshot
+import time
  
 # -----------------------------------------------------------------------------
 # Configuration and Logging Setup
 # -----------------------------------------------------------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
-logger = logging.getLogger(__name__)
+logger = get_logger('execution')
 
 # -----------------------------------------------------------------------------
 # Async Runner for Task Execution
@@ -83,8 +80,40 @@ class AsyncRunner:
         
         logger.info(f"Executing task '{task_objective}' with context: {context[:100]}...")
         
-
-        result = await self.executer.execute(task_objective, agent_id, context, next_objective)
+        start_time = time.time()
+        result = await self.executer.execute(task_objective, agent_id, context, next_objective, task_obj.output_format)
+        execution_time = time.time() - start_time
+        
+        # Log initial execution result as intermediate result
+        log_intermediate_result(
+            task_id=task_id,
+            iteration=0,
+            result_type="task_execution",
+            data={
+                "task_objective": task_objective,
+                "agent_id": agent_id,
+                "execution_time": execution_time,
+                "result_length": len(result),
+                "result_preview": result[:200] + "..." if len(result) > 200 else result
+            },
+            status="executed"
+        )
+        
+        # Save initial execution snapshot
+        save_intermediate_snapshot(
+            f"task_execution_{task_id}.json",
+            {
+                "task_objective": task_objective,
+                "agent_id": agent_id,
+                "context": context,
+                "next_objective": next_objective,
+                "result": result,
+                "execution_time": execution_time
+            },
+            f"Initial execution result for task {task_id}",
+            task_id=task_id,
+            iteration=0
+        )
         
         # If validation is disabled, mark as completed immediately
         if self.max_validation_itt == 0:
@@ -96,13 +125,59 @@ class AsyncRunner:
         for iteration in range(self.max_validation_itt):
             logger.info(f"Validation iteration {iteration + 1}/{self.max_validation_itt} for task '{task_id}'")
             
-            # Validate the current result
-            feedback, new_status = await self.validator.validate(task_obj.objective, result, task_obj.get_history())
+            # Validate the current result (now includes overall task context and output format)
+            validation_start = time.time()
+            feedback, new_status = await self.validator.validate(task_obj.objective, result, task_obj.get_history(), self.overall_task, task_obj.output_format)
+            validation_time = time.time() - validation_start
+            
+            # Log validation attempt as intermediate result
+            log_intermediate_result(
+                task_id=task_id,
+                iteration=iteration + 1,
+                result_type="validation_attempt",
+                data={
+                    "validation_time": validation_time,
+                    "status": new_status,
+                    "feedback_length": len(feedback),
+                    "feedback_preview": feedback[:200] + "..." if len(feedback) > 200 else feedback
+                },
+                status=new_status
+            )
+            
+            # Save validation snapshot
+            save_intermediate_snapshot(
+                f"validation_{task_id}.json",
+                {
+                    "validation_iteration": iteration + 1,
+                    "result_being_validated": result,
+                    "validation_status": new_status,
+                    "validation_feedback": feedback,
+                    "validation_time": validation_time,
+                    "task_history": task_obj.get_history()
+                },
+                f"Validation attempt {iteration + 1} for task {task_id}",
+                task_id=task_id,
+                iteration=iteration + 1
+            )
             
             if new_status == 'completed':
                 logger.info(f"Task '{task_id}' validated successfully after {iteration + 1} iteration(s)")
                 task_obj.save_history(result, feedback)
                 task_obj.set_status("completed")
+                
+                # Log successful completion
+                log_intermediate_result(
+                    task_id=task_id,
+                    iteration=iteration + 1,
+                    result_type="task_completion",
+                    data={
+                        "total_attempts": iteration + 1,
+                        "final_status": "completed",
+                        "final_result_length": len(result)
+                    },
+                    status="completed"
+                )
+                
                 return result
             
             # Validation failed - save the failed attempt
@@ -112,9 +187,56 @@ class AsyncRunner:
             # Re-execute for the next validation attempt (except on last iteration)
             if iteration < self.max_validation_itt - 1:
                 logger.info(f"Re-executing task '{task_id}' for attempt {iteration + 2}")
-                result = await self.executer.re_execute(task_objective, context, next_objective, result, task_obj.get_history())
+                
+                re_exec_start = time.time()
+                result = await self.executer.re_execute(task_objective, context, next_objective, result, task_obj.get_history(), task_obj.output_format)
+                re_exec_time = time.time() - re_exec_start
+                
+                # Log re-execution as intermediate result
+                log_intermediate_result(
+                    task_id=task_id,
+                    iteration=iteration + 2,
+                    result_type="task_re_execution",
+                    data={
+                        "re_execution_time": re_exec_time,
+                        "attempt_number": iteration + 2,
+                        "result_length": len(result),
+                        "result_preview": result[:200] + "..." if len(result) > 200 else result
+                    },
+                    status="re_executed"
+                )
+                
+                # Save re-execution snapshot
+                save_intermediate_snapshot(
+                    f"re_execution_{task_id}.json",
+                    {
+                        "re_execution_attempt": iteration + 2,
+                        "previous_result": task_obj.get_latest_history()[0] if task_obj.get_history() else "",
+                        "previous_feedback": task_obj.get_latest_history()[1] if task_obj.get_history() else "",
+                        "new_result": result,
+                        "re_execution_time": re_exec_time,
+                        "task_history": task_obj.get_history()
+                    },
+                    f"Re-execution attempt {iteration + 2} for task {task_id}",
+                    task_id=task_id,
+                    iteration=iteration + 2
+                )
 
         # If we exit the loop, all validation attempts failed
         logger.warning(f"Task '{task_id}' failed validation after {self.max_validation_itt} attempts. Marking as failed.")
         task_obj.set_status("failed")
+        
+        # Log final failure state
+        log_intermediate_result(
+            task_id=task_id,
+            iteration=self.max_validation_itt,
+            result_type="task_failure",
+            data={
+                "total_attempts": self.max_validation_itt,
+                "final_status": "failed",
+                "final_result_length": len(result)
+            },
+            status="failed"
+        )
+        
         return result

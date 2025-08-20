@@ -24,10 +24,11 @@ class Task:
         history (History): Object tracking execution attempts and feedback.
         remaining_dependencies (int): Count of uncompleted dependencies.
         agent (str): Additional agent information or specifications.
+        output_format (str): Required output format for this task (e.g., 'JSON', 'LaTeX', 'Python code').
     """
 
     def __init__(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
-                 status: str = 'pending', history: History = None, agent: str = ''):
+                 status: str = 'pending', history: History = None, agent: str = '', output_format: str = ''):
         """
         Initialize a new Task instance.
 
@@ -40,6 +41,7 @@ class Task:
             status (str, optional): Initial task status. Defaults to 'pending'.
             history (History, optional): Execution history object. Defaults to None.
             agent (str, optional): Additional agent details. Defaults to empty string.
+            output_format (str, optional): Required output format. Defaults to empty string.
         """
         self.id = id
         self.objective = objective
@@ -54,6 +56,7 @@ class Task:
             self.history = history
         self.remaining_dependencies = len(self.prev)
         self.agent = agent
+        self.output_format = output_format
   
 
     def to_dict(self) -> Dict[str, Any]:
@@ -73,7 +76,8 @@ class Task:
             'status': self.status,
             'history': self.history.get_latest_result(),
             'remaining_dependencies': self.remaining_dependencies,
-            'agent': self.agent
+            'agent': self.agent,
+            'output_format': self.output_format
         }
     
     def set_status(self, status: str):
@@ -232,7 +236,8 @@ class Workflow:
             remaining_dependencies = 0
         
       
-        new_task = Task(id, objective, agent_id, next, prev, status, history, agent)
+        output_format = data.get('output_format', '')
+        new_task = Task(id, objective, agent_id, next, prev, status, history, agent, output_format)
         self.tasks[id] = new_task
 
         # Update related tasks: add this task id to each parent's `next` list.

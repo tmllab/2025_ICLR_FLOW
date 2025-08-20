@@ -81,10 +81,9 @@ class CodeAnalyzer:
     
     def _is_incomplete_code(self, code: str, tree: ast.AST) -> bool:
         """Check if code appears to be incomplete or pseudocode."""
-        # Check for common incomplete patterns
+        # Check for common incomplete patterns (but be smarter about pass)
         incomplete_patterns = [
             r'#\s*TODO',
-            r'pass\s*$',
             r'\.\.\.', 
             r'raise\s+NotImplementedError',
             r'# Implementation here',
@@ -95,13 +94,20 @@ class CodeAnalyzer:
             if re.search(pattern, code, re.MULTILINE | re.IGNORECASE):
                 return True
         
-        # Check if functions only contain pass statements
+        # Check if functions only contain pass statements, but exclude base class methods
+        pass_only_functions = 0
+        total_functions = 0
+        
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
+                total_functions += 1
                 if len(node.body) == 1 and isinstance(node.body[0], ast.Pass):
-                    return True
+                    # Allow pass in methods that look like base class methods
+                    if not (node.name in ['draw', '__init__', 'update', 'render'] or node.name.startswith('_')):
+                        pass_only_functions += 1
         
-        return False
+        # If more than half the functions are just pass, it's probably incomplete
+        return total_functions > 0 and pass_only_functions > total_functions / 2
     
     def _is_complex_application(self, code: str, tree: ast.AST) -> bool:
         """Check if code is a complex application requiring different testing."""
@@ -191,7 +197,7 @@ class CodeTester:
         # Test 1: Syntax validation
         try:
             compile(code, '<string>', 'exec')
-            results.append("✓ Syntax validation passed")
+            results.append("[PASS] Syntax validation passed")
         except SyntaxError as e:
             return f"Syntax Error: {str(e)}", 'failed'
         
@@ -200,14 +206,14 @@ class CodeTester:
             import_test_result = await self._test_imports(code)
             results.append(import_test_result)
         except Exception as e:
-            results.append(f"⚠ Import test warning: {str(e)}")
+            results.append(f"[WARN] Import test warning: {str(e)}")
         
         # Test 3: Basic instantiation test (without running main loops)
         try:
             instantiation_result = await self._test_instantiation(code)
             results.append(instantiation_result)
         except Exception as e:
-            results.append(f"⚠ Instantiation test warning: {str(e)}")
+            results.append(f"[WARN] Instantiation test warning: {str(e)}")
         
         return "\n".join(results), 'completed'
     
@@ -235,9 +241,9 @@ class CodeTester:
                 failed_imports.append(imp)
         
         if failed_imports:
-            return f"⚠ Missing packages: {', '.join(failed_imports)}"
+            return f"[WARN] Missing packages: {', '.join(failed_imports)}"
         else:
-            return "✓ All imports available"
+            return "[PASS] All imports available"
     
     def _is_common_package(self, package_name: str) -> bool:
         """Check if package is commonly available (to avoid testing obscure packages)."""
@@ -256,9 +262,9 @@ class CodeTester:
         try:
             exec_globals = {}
             exec(safe_code, exec_globals)
-            return "✓ Code structure validation passed"
+            return "[PASS] Code structure validation passed"
         except Exception as e:
-            return f"⚠ Structure validation warning: {str(e)}"
+            return f"[WARN] Structure validation warning: {str(e)}"
     
     def _make_code_safe_for_testing(self, code: str) -> str:
         """Remove or comment out interactive elements for safe testing."""
@@ -278,7 +284,7 @@ class CodeTester:
         
         return safe_code
     
-    async def _run_unit_tests(self, code: str) -> str:
+    def _run_unit_tests(self, code: str) -> str:
         """Execute simple unit tests for functions."""
         # This is a simplified version - in practice, you'd generate smarter tests
         exec_globals = {}
@@ -292,9 +298,9 @@ class CodeTester:
                     # Very basic smoke test - just call with no args if possible
                     if obj.__code__.co_argcount == 0:
                         result = obj()
-                        test_results.append(f"✓ {name}() executed successfully")
+                        test_results.append(f"[PASS] {name}() executed successfully")
                 except Exception as e:
-                    test_results.append(f"⚠ {name}() test warning: {str(e)}")
+                    test_results.append(f"[WARN] {name}() test warning: {str(e)}")
         
         return "\n".join(test_results) if test_results else "No testable functions found"
     

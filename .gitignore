@@ -6,3 +6,7 @@
 out
 example.py
 config.py
+/runs
+config.py
+config.py
+CLAUDE.md

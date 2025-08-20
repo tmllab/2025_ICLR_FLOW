@@ -97,7 +97,8 @@ def process_context(context: str):
             'prev': task_data['prev'],
             'status': 'pending',
             'history': History(),
-            'agent': agents[agent_id]['role']
+            'agent': agents[agent_id]['role'],
+            'output_format': task_data.get('output_format', '')
         }
         tasks[task_id] = Task(**task_info)
     

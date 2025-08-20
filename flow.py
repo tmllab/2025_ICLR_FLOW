@@ -1,19 +1,14 @@
 import asyncio
 import json
-import logging
 from typing import Dict, Any
 from runner import AsyncRunner
 from workflowManager import WorkflowManager
+from logging_config import get_logger, log_execution_result, log_workflow_event, log_intermediate_result
 
 # -----------------------------------------------------------------------------
 # Configuration and Logging Setup
 # -----------------------------------------------------------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
-logger = logging.getLogger(__name__)
+logger = get_logger('execution')
 
 
 
@@ -122,9 +117,16 @@ class Flow:
         result = await self.runner.execute(self.workflow, task_id)
 
 
-        # Logging execution result for debugging
-        with open('execute_log.json', 'a', encoding='utf-8') as file:
-            json.dump({task_id: result}, file, indent=4)
+        # Log execution result using structured logging
+        task = self.workflow.tasks[task_id]
+        log_execution_result(
+            task_id=task_id,
+            agent_id=str(task.agent_id),
+            objective=task.objective,
+            result=result,
+            status=task.status,
+            duration=0.0  # Duration tracking would need to be added separately
+        )
 
 
     def task_cancelled_callback(self, task_id: str):
@@ -154,8 +156,20 @@ class Flow:
         self.workflow.handle_task_done(task_id)
 
 
+        # Log task completion as intermediate result
+        log_intermediate_result(
+            task_id=task_id,
+            iteration=1,
+            result_type="task_completion_callback",
+            data={
+                "task_done_counter": self.task_done_counter,
+                "refine_threshold": self.refine_threshold,
+                "will_trigger_refinement": (self.task_done_counter >= self.refine_threshold and not self.redefining and self.max_refine_itt > 0)
+            },
+            status="completed"
+        )
+        
         # Trigger workflow refinement when threshold is reached
-        print(self.task_done_counter , self.refine_threshold )
         if self.task_done_counter >= self.refine_threshold and not self.redefining and self.max_refine_itt > 0:
             logger.info(f"Task {task_id} triggers workflow refinement.")
             self.task_done_counter = 0

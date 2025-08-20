@@ -4,23 +4,28 @@ INIT_TEMPLATE = """{
   "subtasks": [
     {
       "id": 0,
-      "objective": "..."
+      "objective": "...",
+      "output_format": "..."
     },
     {
       "id": 1,
-      "objective": "..."
+      "objective": "...",
+      "output_format": "..."
     },
     {
       "id": 2,
-      "objective": "..."
+      "objective": "...",
+      "output_format": "..."
     },
     {
       "id": 3,
-      "objective": "..."
+      "objective": "...",
+      "output_format": "..."
     },
     {
       "id": 4,
-      "objective": "..."
+      "objective": "...",
+      "output_format": "..."
     }
   ],
   "subtask_dependencies": [
@@ -156,6 +161,7 @@ Your response must be a JSON object with exactly this structure:
 - **"workflow"**: A dict where keys are task IDs ("task0", "task1", etc.) and values contain:
   - **"objective"**: Clear description of what this task accomplishes
   - **"agent_id"**: Integer (0, 1, 2, etc.) identifying which agent handles this task
+  - **"output_format"**: Required output format for this task (e.g., "JSON", "LaTeX", "Python code", "Markdown", "Plain text", etc.)
   - **"next"**: List of task IDs that depend on this task (can be empty [])
   - **"prev"**: List of task IDs this task depends on (can be empty [])
 - **"agents"**: A list of agent objects with:
@@ -413,6 +419,7 @@ UPDATE_INPUT_EXAMPLE = '''
       "next": ["task1"],
       "prev": [],
       "status": "completed",
+      "output_format": "JSON",
       "data": "Aggregated customer feedback data ready for analysis."
     },
     "task1": {
@@ -421,6 +428,7 @@ UPDATE_INPUT_EXAMPLE = '''
       "next": [],
       "prev": ["task0"],
       "status": "failed",
+      "output_format": "Markdown report",
       "data": ""
     }
   },
