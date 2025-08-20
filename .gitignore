@@ -1,12 +1,9 @@
 *.pyc
 *.json
-
 *.txt
 .zip
 out
 example.py
 config.py
 /runs
-config.py
-config.py
 CLAUDE.md
