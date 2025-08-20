@@ -38,8 +38,14 @@ class WorkflowManager:
         """
         logger.info("Starting workflow refinement...")
         
-        # Log pre-refinement state as intermediate result
-        current_data = {tid: task.__dict__ for tid, task in self.workflow.tasks.items()}
+        # Log pre-refinement state as intermediate result (properly serialize History objects)
+        current_data = {}
+        for tid, task in self.workflow.tasks.items():
+            task_dict = task.__dict__.copy()
+            # Convert History object to dict for JSON serialization
+            if hasattr(task_dict['history'], 'to_dict'):
+                task_dict['history'] = task_dict['history'].to_dict()
+            current_data[tid] = task_dict
         
         log_intermediate_result(
             task_id="workflow_refinement",
@@ -58,21 +64,43 @@ class WorkflowManager:
         save_intermediate_snapshot(
             "workflow_pre_refinement.json",
             {
-                "workflow_tasks": current_data,
-                "workflow_structure": self.workflow.to_dict()
+                "workflow_tasks": current_data
             },
             "Workflow state before refinement process",
             task_id="workflow_refinement",
             iteration=1
         )
         
-        new_workflow_data = await self.optimize_workflow(current_data)
+        new_workflow_response = await self.optimize_workflow(current_data)
+
+        # Extract the workflow tasks from the GPT response  
+        if isinstance(new_workflow_response, dict):
+            if 'workflow' in new_workflow_response:
+                new_workflow_data = new_workflow_response['workflow']
+            else:
+                # Response is already the tasks dict
+                new_workflow_data = new_workflow_response
+        else:
+            logger.error(f"Unexpected response type from optimize_workflow: {type(new_workflow_response)}")
+            logger.error(f"Response content: {new_workflow_response}")
+            return
+            
+        # Validate that new_workflow_data is a dictionary
+        if not isinstance(new_workflow_data, dict):
+            logger.error(f"Expected workflow data to be dict, got {type(new_workflow_data)}: {new_workflow_data}")
+            return
 
         # Merge new data and recalculate dependencies
         self.workflow.merge_workflow(new_workflow_data)
         
-        # Log post-refinement state as intermediate result
-        updated_data = {tid: task.__dict__ for tid, task in self.workflow.tasks.items()}
+        # Log post-refinement state as intermediate result (properly serialize History objects)
+        updated_data = {}
+        for tid, task in self.workflow.tasks.items():
+            task_dict = task.__dict__.copy()
+            # Convert History object to dict for JSON serialization
+            if hasattr(task_dict['history'], 'to_dict'):
+                task_dict['history'] = task_dict['history'].to_dict()
+            updated_data[tid] = task_dict
         
         log_intermediate_result(
             task_id="workflow_refinement",
@@ -91,7 +119,6 @@ class WorkflowManager:
             "workflow_post_refinement.json",
             {
                 "refined_workflow_tasks": updated_data,
-                "refined_workflow_structure": self.workflow.to_dict(),
                 "changes_summary": {
                     "tasks_before": len(current_data),
                     "tasks_after": len(updated_data),
@@ -269,4 +296,10 @@ class WorkflowManager:
             logger.error(f"Failed to parse JSON: {e}\nGPT response: {response_text}")
             return current_workflow
 
-        return response_data.get('workflow', current_workflow)
+        # Ensure we return the workflow tasks dictionary
+        workflow_data = response_data.get('workflow', current_workflow)
+        if workflow_data is None:
+            logger.warning("GPT response contained no workflow data, using current workflow")
+            return current_workflow
+            
+        return workflow_data

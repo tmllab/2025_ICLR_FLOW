@@ -1,71 +1,4 @@
 
-
-INIT_TEMPLATE = """{
-  "subtasks": [
-    {
-      "id": 0,
-      "objective": "...",
-      "output_format": "..."
-    },
-    {
-      "id": 1,
-      "objective": "...",
-      "output_format": "..."
-    },
-    {
-      "id": 2,
-      "objective": "...",
-      "output_format": "..."
-    },
-    {
-      "id": 3,
-      "objective": "...",
-      "output_format": "..."
-    },
-    {
-      "id": 4,
-      "objective": "...",
-      "output_format": "..."
-    }
-  ],
-  "subtask_dependencies": [
-    { "parent": 0, "child": 1 },
-    { "parent": 0, "child": 2 },
-    { "parent": 1, "child": 3 },
-    { "parent": 2, "child": 3 },
-    { "parent": 3, "child": 4 }
-  ],
-  "agents": [
-    {
-      "id": "Agent 0",
-      "role": "...",
-      "subtasks": [0]
-    },
-    {
-      "id": "Agent 1",
-      "role": "...",
-      "subtasks": [1]
-    },
-    {
-      "id": "Agent 2",
-      "role": "...",
-      "subtasks": [2]
-    },
-    {
-      "id": "Agent 3",
-      "role": "...",
-      "subtasks": [3]
-    },
-    {
-      "id": "Agent 4",
-      "role": "...",
-      "subtasks": [4]
-    }
-  ]
-}
-
-"""
-
 INIT_WORKFLOW_TEMPLATE = """{
   "workflow": {
     "task0": {
@@ -126,34 +59,41 @@ INIT_WORKFLOW_TEMPLATE = """{
 """
 
 INIT_WORKFLOW_PROMPT = f'''
-You are a workflow planner. Your task is to break down a given high-level task into an efficient and **practical** workflow that **maximizes concurrency while minimizing complexity**. 
+You are a workflow planner. Your task is to break down a given high-level task into an efficient and **practical** workflow focused on **core implementation** that **maximizes concurrency while minimizing complexity**. 
 
-The breakdown is meant to **improve efficiency** through **parallel execution**, but **only** where meaningful. The goal is to ensure that the workflow remains **simple, scalable, and manageable** while avoiding excessive fragmentation.
+The breakdown should focus on **essential implementation tasks only**, avoiding testing, debugging, complex integration, or management overhead. The goal is to ensure that the workflow remains **simple, focused, and manageable**.
 
 ---
 
 # **Guidelines for Workflow Design**
-## **1. Subtask Clarity and Completeness**
-- **Each subtask must be well-defined, self-contained, and easy to execute by a single agent.**
-- **Ensure that the workflow meets all requirements of the task.**
-- **Keep descriptions concise but informative.** Clearly specify the subtask's purpose, the operation it performs, and its role in the overall workflow.
-- **Avoid unnecessary subtasks.** If a task can be handled efficiently in one step without blocking others, do not split it further.
+## **1. Core Implementation Focus**
+- **Focus only on essential implementation tasks.** Each task should produce concrete deliverables (code, algorithms, data structures, etc.).
+- **Avoid meta-tasks.** Do NOT include tasks for testing, debugging, deployment, monitoring, or complex state management.
+- **Avoid integration overhead.** Simple integration is fine, but avoid breaking integration into multiple complex tasks.
+- **Each task must be well-defined, self-contained, and directly contribute to the final deliverable.**
 
+## **2. Forbidden Task Types**
+- **NO testing tasks** - validation is handled by the system
+- **NO debugging tasks** - re-execution handles corrections
+- **NO deployment/monitoring tasks** - focus on implementation only
+- **NO complex state management** - keep game states simple
+- **NO overly granular integration** - combine related integration steps
+- **NO planning or analysis phases** - jump straight to implementation
 
-## **2. Dependency Optimization and Parallelization**
-- **Identify only necessary dependencies.** Do not introduce dependencies unless a subtask *genuinely* requires the output of another.
-- **Encourage parallel execution, but do not force it.** If tasks can run independently without affecting quality, prioritize concurrency. However, avoid excessive parallelization that may lead to synchronization issues.
+## **3. Dependency Optimization and Parallelization**
+- **Identify only necessary dependencies.** Do not introduce dependencies unless a task *genuinely* requires the output of another.
+- **Encourage parallel execution for independent components.** Core data structures, algorithms, and modules can often be developed concurrently.
 - **Keep the dependency graph simple.** Avoid deep dependency chains that increase complexity.
 
-## **3. Efficient Agent Assignment**
+## **4. Efficient Agent Assignment**
 - **Assign exactly one agent per task using agent_id (0, 1, 2, etc.).** Every task must have a responsible agent.
 - **Use sequential agent IDs starting from "Agent 0".** Assign agents in a clear, structured way.
-- **Ensure logical role assignments.** Each agent should have a well-defined function relevant to the assigned task.
+- **Focus on implementation roles.** Each agent should be responsible for building specific components.
 
-## **4. Workflow Simplicity and Maintainability**
-- **Do not overcomplicate the workflow.** A well-balanced workflow has an optimal number of subtasks that enhance efficiency without adding unnecessary coordination overhead.
+## **5. Workflow Simplicity and Maintainability**
+- **Keep workflows lean.** Prefer 5-8 focused implementation tasks over 10+ fragmented tasks.
 - **Maintain clarity and logical flow.** The breakdown should be intuitive, avoiding redundant or trivial steps.
-- **Prioritize quality over extreme concurrency.** Do not split tasks into too many small fragments if it negatively impacts output quality.
+- **Prioritize core functionality.** Focus on the main features requested, not edge cases or advanced features.
 
 ## **Required JSON Output Format:**
 
@@ -380,7 +320,7 @@ pass
 '''
 
 TEXT_VALIDATION_PROMPT = f'''
-You are a subtask result evaluator responsible for determining whether a subtask result meets the subtask requirements, if not, you need to improve it.
+You are a task result evaluator responsible for determining whether a task result meets the task requirements, if not, you need to improve it.
 
 # Objective and Steps  
 1. **Completeness and Quality Check:**  
@@ -396,7 +336,7 @@ You are a subtask result evaluator responsible for determining whether a subtask
    - Otherwise, provide **direct and precise feedback** and **output the improved result in the required format** for finalization.  
 
 4. **Ensure Completeness:**
-   - Your output must meet all requirements of the subtask.
+   - Your output must meet all requirements of the task.
    - Include all necessary details so that the output is self-contained and can be directly used as input for downstream tasks.
 
 
@@ -433,8 +373,8 @@ UPDATE_INPUT_EXAMPLE = '''
     }
   },
   "agents": [
-    {"id": "Agent 0", "role": "Data Collector", "subtasks": [0]},
-    {"id": "Agent 1", "role": "Data Analyst", "subtasks": [1]}
+    {"id": "Agent 0", "role": "Data Collector", "tasks": [0]},
+    {"id": "Agent 1", "role": "Data Analyst", "tasks": [1]}
   ],
   "final_goal": "Develop a comprehensive customer satisfaction report that identifies detailed sentiment trends, key feedback themes, and actionable insights for strategic decision-making."
 }
@@ -485,30 +425,48 @@ WITHOUT_UPDATE_EXAMPLE = '''
 
 UPDATE_WORKFLOW_PROMPT = f'''
 # Role:
-You are a responsible workflow updater for a project. Using the `current_workflow` and the latest task progress data, update the workflow by adding, removing, or modifying tasks as needed. Ensure the updated workflow maintains modularity and maximizes parallel execution.
- If a coverage requirement is present and subtasks repeatedly fail to meet it, introduce or refine subtasks to handle more detailed content.
+You are a responsible workflow updater focused on **core implementation tasks only**. Using the `current_workflow` and task progress data, update the workflow **conservatively** by only making essential changes. Avoid adding complexity, testing tasks, or overly granular integration steps.
+
+# Core Principles:
+- **Prefer minimal changes** - only modify if absolutely necessary
+- **Focus on implementation** - avoid testing, debugging, or management tasks
+- **Keep it simple** - resist the urge to break tasks into smaller pieces
+- **Maintain the original workflow structure** when possible
+
 # Context:
 You will get the input like this: {UPDATE_INPUT_EXAMPLE}
 
 - Assess Workflow Structure:
   1. Examine All Tasks: Review all tasks, including those labeled "completed", "pending" and "failed".
      - Check fails:
-       - If a task is labeled "failed", it implies that this task has been rerun multiple times based on various feedback but still fails.
-       - Consider improve the whole workflow by modifying, deleting or adding tasks.
+       - If a task is labeled "failed", consider if the task objective needs to be clarified or simplified
+       - **DO NOT** add testing, debugging, or validation tasks - these are handled by the system
+       - Only modify failed tasks if the objective is unclear or too complex
      - Check Adequacy:
-       - Confirm the workflow is complete and logically structured to achieve the "final_goal".
-       - Ensure there are no missing critical tasks or dependencies.
-       - Verify that "next" and "prev" connections between tasks are logical and facilitate seamless progression.
+       - Confirm the workflow covers the main implementation requirements
+       - **DO NOT** add tasks for edge cases, advanced features, or complex state management
+       - Focus only on core functionality gaps
      - Identify Inefficiencies:
-       - Detect and address unnecessary dependencies, bottlenecks, or redundant steps that hinder the workflow's efficiency.
+       - Remove redundant or overly complex tasks
+       - **DO NOT** break simple tasks into multiple smaller tasks
+       - Combine related tasks if they create unnecessary dependencies
 
-- Allowed Changes:
-  - Modify: Clarify and detail the objectives of tasks with insufficient or vague directives to ensure they meet the "final_goal".
-  - Add: Introduce new tasks with clear, detailed descriptions to fill gaps in data or structure.
-  - Remove: Eliminate redundant or obsolete tasks to streamline the workflow.
+- Restricted Changes (DO NOT ADD):
+  - **NO testing tasks** - validation is handled automatically
+  - **NO debugging tasks** - re-execution handles corrections  
+  - **NO deployment/monitoring tasks** - focus on implementation only
+  - **NO complex integration tasks** - keep integration simple
+  - **NO game state management tasks** - keep states simple
+  - **NO planning or analysis phases** - focus on building
 
-- Maintain Logical Flow:
-  - Reorganize task connections ("next" and "prev") to enhance parallel execution and improve overall workflow efficiency.
+- Allowed Changes (Use Sparingly):
+  - Modify: Clarify vague task objectives to focus on concrete implementation
+  - Add: Only add missing core implementation components (rare)
+  - Remove: Eliminate redundant, testing, or overly complex tasks
+
+- Maintain Simplicity:
+  - Prefer fewer, focused tasks over many granular tasks
+  - Keep dependencies simple and direct
 
 # Response Format and Example:
 - If Changes Are Made:
@@ -519,32 +477,32 @@ You will get the input like this: {UPDATE_INPUT_EXAMPLE}
 - If No Changes Are Made:
   - Return an empty JSON object to indicate that no modifications were necessary.
 
-- Example Output for No Required Optimization: {WITHOUT_UPDATE_EXAMPLE}
+- Output for No Required Optimization: {WITHOUT_UPDATE_EXAMPLE}
 '''
 
 RESULT_EXTRACT_PROMPT = '''
 # Role
-You are a workflow result synthesizer responsible for extracting, connecting, and integrating results from all completed subtasks to produce the final deliverable that fully addresses the original task requirements.
+You are a workflow result synthesizer responsible for extracting, connecting, and integrating results from all completed tasks to produce the final deliverable that fully addresses the original task requirements.
 
 # Input Format
 [TASK]: The original task description and requirements
-[CHATHISTORY]: Complete workflow execution results containing all subtask outputs, organized by task order
+[CHATHISTORY]: Complete workflow execution results containing all task outputs, organized by task order
 
 # Core Objective
-Extract and synthesize results from ALL subtasks in the workflow to create a comprehensive final solution. This is NOT a summary - it's the actual deliverable that the user requested.
+Extract and synthesize results from ALL tasks in the workflow to create a comprehensive final solution. This is NOT a summary - it's the actual deliverable that the user requested.
 
 # Critical Instructions
 
 1. **Extract All Relevant Results**: 
-   - Identify completed subtasks and their outputs from [CHATHISTORY]
-   - Extract key deliverables, insights, code, analysis, or content from each subtask
+   - Identify completed tasks and their outputs from [CHATHISTORY]
+   - Extract key deliverables, insights, code, analysis, or content from each task
    - Ensure no important results are overlooked or omitted
 
 2. **Connect and Integrate Outputs**:
-   - Logically connect outputs from different subtasks
-   - Resolve dependencies between subtask results
+   - Logically connect outputs from different tasks
+   - Resolve dependencies between task results
    - Combine partial solutions into a complete whole
-   - Build upon earlier subtask results in later sections
+   - Build upon earlier task results in later sections
 
 3. **Respect Original Task Format Requirements**:
    - If [TASK] explicitly requests code (e.g., "Write a Python script"), provide complete executable code

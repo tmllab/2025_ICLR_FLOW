@@ -211,7 +211,7 @@ class Workflow:
 
     def add_task(self, id: str, objective: str, agent_id: int, next: List[str], prev: List[str],
                  status: str = 'pending', history: History = None, remaining_dependencies: int = 0,
-                 agent: str = '', compute_dependencies: bool = True):
+                 agent: str = '', output_format: str = '', compute_dependencies: bool = True):
         """
         Add a new task to the workflow and update dependency links in related tasks.
         
@@ -236,7 +236,6 @@ class Workflow:
             remaining_dependencies = 0
         
       
-        output_format = data.get('output_format', '')
         new_task = Task(id, objective, agent_id, next, prev, status, history, agent, output_format)
         self.tasks[id] = new_task
 
@@ -377,6 +376,7 @@ class Workflow:
                     history=History(),
                     remaining_dependencies=0,
                     agent=new_task_data.get('agent', ''),
+                    output_format=new_task_data.get('output_format', ''),
                     compute_dependencies=False
                 )
 

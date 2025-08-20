@@ -53,14 +53,6 @@ class Validator:
             before routing to the appropriate validator.
         """
         try:
-            # # Check if solution contains Python code that should be executed/tested
-            # if self._contains_python_code(solution):
-            #     need_unit_test = await self.pythonval.need_validate(solution, task_obj)
-                
-            #     if need_unit_test:
-            #         # Use intelligent Python validation for executable code
-            #         test_result, status = await self.pythonval.validate(task_obj, solution, history, overall_task, output_format)
-            #         return test_result, status
             
             # Default to text validation for non-executable code or explanatory content
             test_result, status = await self.textval.validate(task_obj, solution, history, overall_task, output_format)

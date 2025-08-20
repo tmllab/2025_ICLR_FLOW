@@ -2,6 +2,7 @@ import asyncio
 from openai import OpenAI, AsyncOpenAI
 from typing import Dict, Any, List
 from config import Config
+import httpx
 
 # -----------------------------------------------------------------------------
 # GPT Client
@@ -34,8 +35,13 @@ class GPTClient:
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
+        
+        # Create HTTP client with timeout
+        timeout = httpx.Timeout(300.0)  # 5 minutes timeout
+        http_client = httpx.AsyncClient(timeout=timeout)
+        
         self.client = OpenAI(api_key=self.api_key)
-        self.a_client = AsyncOpenAI(api_key=self.api_key)
+        self.a_client = AsyncOpenAI(api_key=self.api_key, http_client=http_client)
         
     async def a_chat_completion(self, messages: List[Dict[str, Any]], temperature: float = None, response_format: Dict[str, Any] = None) -> str:
         """
@@ -62,8 +68,16 @@ class GPTClient:
         if response_format:
             kwargs["response_format"] = response_format
             
-        response = await self.a_client.chat.completions.create(**kwargs)
-        return response.choices[0].message.content
+        try:
+            response = await asyncio.wait_for(
+                self.a_client.chat.completions.create(**kwargs),
+                timeout=300.0  # 5 minutes timeout
+            )
+            return response.choices[0].message.content
+        except asyncio.TimeoutError:
+            raise Exception("OpenAI API call timed out after 5 minutes")
+        except Exception as e:
+            raise Exception(f"OpenAI API call failed: {str(e)}")
     
     def chat_completion(self, messages: List[Dict[str, Any]], temperature: float = None, response_format: Dict[str, Any] = None) -> str:
         """
