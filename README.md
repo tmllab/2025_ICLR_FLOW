@@ -1,12 +1,21 @@
 ﻿# [Flow: Modularized Agentic Workflow Automation (ICLR'25)](https://arxiv.org/abs/2501.07834)
 
-## Note
-
-Auto validation features (e.g., adding unit tests) has been added to main branch.
-
 ## Overview
 
 **Flow** is a multi-agent framework designed to enhance task automation and execution efficiency through **modular workflow design** and **dynamic refinement**. By structuring workflows as **Activity-on-Vertex (AOV) graphs**, Flow enables real-time adjustments, supports concurrent execution of subtasks, and optimizes workflow structures dynamically.
+
+## Flow-Claude (Flow for Claude Code) 
+
+We have updated Flow to fully support Claude Code. Flow-Claude is designed for users working on long development tasks.
+
+* break down requirements into parallel tasks,
+* execute them simultaneously without stopping,
+* auto-commit every change to Git,
+* and merge results automatically.
+
+Install it via: `pip install flow-claude`
+
+GitHub link: [https://github.com/a5507203/flow-claude](https://github.com/a5507203/flow-claude)
 
 
 ## Key Features
